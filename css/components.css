@@ -50,12 +50,21 @@
 }
 
 .btn-success {
-  background-color: #4CAF50;
-  color: var(--color-white);
+  background-color: var(--color-success);
+  color: var(--color-text-on-primary);
 }
 
 .btn-success:hover:not(:disabled) {
-  background-color: #43A047;
+  opacity: 0.9;
+}
+
+.btn-danger {
+  background-color: var(--color-error);
+  color: var(--color-white);
+}
+
+.btn-danger:hover:not(:disabled) {
+  opacity: 0.9;
 }
 
 /* Button Grid */
