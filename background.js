@@ -38,25 +38,35 @@ chrome.runtime.onInstalled.addListener(async (details) => {
 });
 
 /**
- * Create Context Menus for 5 Scenes
+ * Create Context Menus grouped under a parent
  */
 function createContextMenus() {
   chrome.contextMenus.removeAll(() => {
+    // Parent Menu
+    chrome.contextMenus.create({
+      id: 'aiStoryMain',
+      title: 'AI Story (Scene #1)',
+      contexts: ['editable', 'all']
+    });
+
     // Generate menu for 5 scenes
     for (let i = 1; i <= 5; i++) {
       chrome.contextMenus.create({
         id: `s${i}_img`,
+        parentId: 'aiStoryMain',
         title: `S${i}: Img`,
         contexts: ['editable']
       });
       chrome.contextMenus.create({
         id: `s${i}_vdo`,
+        parentId: 'aiStoryMain',
         title: `S${i}: Vdo`,
         contexts: ['editable']
       });
-      // Add small separator between scenes
+      
       chrome.contextMenus.create({
         id: `sep_${i}`,
+        parentId: 'aiStoryMain',
         type: 'separator',
         contexts: ['editable']
       });
@@ -64,18 +74,21 @@ function createContextMenus() {
 
     chrome.contextMenus.create({
       id: 'nextSet',
+      parentId: 'aiStoryMain',
       title: 'Next Set (+5 Scenes)',
       contexts: ['all']
     });
 
     chrome.contextMenus.create({
       id: 'deleteCurrentFive',
+      parentId: 'aiStoryMain',
       title: '🔥 Delete these 5 and Shift',
       contexts: ['all']
     });
 
     chrome.contextMenus.create({
       id: 'resetPasteIndex',
+      parentId: 'aiStoryMain',
       title: 'Reset to Scene #1',
       contexts: ['all']
     });
@@ -114,18 +127,10 @@ chrome.contextMenus.onClicked.addListener(async (info, tab) => {
   else if (info.menuItemId === 'deleteCurrentFive') {
     if (chronologicalData.length === 0) return;
     
-    // We need to delete from the ORIGINAL data (which is newest first)
-    // chronologicalData is [Oldest...Newest]
-    // index points to the starting point in chronologicalData
-    
     const countToDelete = Math.min(5, chronologicalData.length);
-    // Find IDs or items to delete
     const itemsToDelete = chronologicalData.slice(index, index + countToDelete);
-    
-    // Filter out these items from the original data
     const newData = data.filter(item => !itemsToDelete.includes(item));
     
-    // If we deleted from the end and looped, index might be high
     let nextIdx = index;
     if (nextIdx >= newData.length) nextIdx = 0;
 
@@ -135,8 +140,6 @@ chrome.contextMenus.onClicked.addListener(async (info, tab) => {
     });
     
     updateContextMenuTitle(nextIdx, newData.length);
-    
-    // Notify sidebar if open
     chrome.runtime.sendMessage({ action: 'dataUpdated' });
   }
   // Reset
@@ -159,16 +162,19 @@ async function updateContextMenuTitle(nextIdx = -1, total = -1) {
     displayTotal = (result.ollamaCleanedData || []).length;
   }
 
-  // Update the 5 scene labels to show which absolute scene numbers they are
-  for (let i = 1; i <= 5; i++) {
-    const absScene = displayTotal > 0 ? ((displayIdx + i - 1) % displayTotal) + 1 : i;
-    const suffix = displayTotal > 0 ? ` (#${absScene})` : ' (-)';
+  const sceneNum = displayTotal > 0 ? (displayIdx % displayTotal) + 1 : 1;
+  const mainTitle = displayTotal > 0 ? `AI Story (Scene #${sceneNum})` : 'AI Story (No Data)';
+  
+  try {
+    chrome.contextMenus.update('aiStoryMain', { title: mainTitle });
     
-    try {
+    for (let i = 1; i <= 5; i++) {
+      const absScene = displayTotal > 0 ? ((displayIdx + i - 1) % displayTotal) + 1 : i;
+      const suffix = displayTotal > 0 ? ` (#${absScene})` : ' (-)';
       chrome.contextMenus.update(`s${i}_img`, { title: `S${i}: Img${suffix}` });
       chrome.contextMenus.update(`s${i}_vdo`, { title: `S${i}: Vdo${suffix}` });
-    } catch (e) {}
-  }
+    }
+  } catch (e) {}
 }
 
 /**
