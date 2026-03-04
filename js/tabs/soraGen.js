@@ -37,6 +37,7 @@ const SoraGen = {
       exportBtn: document.getElementById('soraExportBtn'),
       importBtn: document.getElementById('soraImportBtn'),
       clearAllBtn: document.getElementById('soraClearAllBtn'),
+      copyAllBtn: document.getElementById('soraCopyAllBtn'),
       resultsList: document.getElementById('soraResultsList'),
       status: document.getElementById('soraStatus'),
       modelDisplay: document.getElementById('soraCurrentModelDisplay')
@@ -58,6 +59,9 @@ const SoraGen = {
     }
     if (this.elements.clearAllBtn) {
       this.elements.clearAllBtn.addEventListener('click', () => this.clearAllData());
+    }
+    if (this.elements.copyAllBtn) {
+      this.elements.copyAllBtn.addEventListener('click', () => this.handleCopyAll());
     }
   },
 
@@ -241,6 +245,26 @@ Format:
       this.data.splice(index, 1);
       await this.saveData();
       this.renderData();
+    }
+  },
+
+  /**
+   * Copy all prompts to clipboard (Old -> New)
+   */
+  async handleCopyAll() {
+    if (this.data.length === 0) {
+      showToast('ไม่มีข้อมูลที่จะคัดลอก', 'error');
+      return;
+    }
+
+    // Join from oldest to newest
+    const allPrompts = [...this.data].reverse().map(item => item.prompt).join('\n\n');
+    
+    try {
+      await navigator.clipboard.writeText(allPrompts);
+      showToast('คัดลอกทั้งหมดแล้ว (เว้นบรรทัด)', 'success');
+    } catch (err) {
+      showToast('คัดลอกล้มเหลว', 'error');
     }
   },
 
