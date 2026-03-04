@@ -122,21 +122,21 @@ const OllamaCleaner = {
    */
   async processWithAI(text) {
     const systemPrompt = `You are a data extraction assistant. 
-Your task is to extract "Image Prompts" and "Video Prompts" from the user's text.
-The text is usually a list of scenes for a video.
-Each scene should have an image prompt (describing the visual) and a video prompt (describing the motion).
+Your task is to extract "Image Prompts", "Video Prompts", and "Voiceover Scripts" from the user's text.
 
 Rules:
-1. Extract multiple pairs if present.
+1. Extract multiple scenes if present.
 2. Return ONLY a JSON array of objects.
-3. Each object MUST have keys: "image_prompt" and "video_prompt".
-4. If a prompt is missing, use a reasonable description based on the context.
-5. Translate to English if the original is in Thai.
+3. Each object MUST have keys: "image_prompt", "video_prompt", and "voiceover".
+4. "image_prompt": Describe the scene's visual state in English.
+5. "video_prompt": Describe the motion and action in English.
+6. "voiceover": Keep the original Thai script if present, otherwise leave empty.
+7. Translate any Thai descriptions in "image_prompt" or "video_prompt" to English.
 
 Example output format:
 [
-  {"image_prompt": "A beautiful sunset over the mountains", "video_prompt": "Slow camera zoom towards the peak"},
-  {"image_prompt": "A cat playing with yarn", "video_prompt": "Cat pouncing on the yarn in slow motion"}
+  {"image_prompt": "A beautiful sunset...", "video_prompt": "Camera zooms...", "voiceover": "สวัสดีครับ..."},
+  {"image_prompt": "A cat playing...", "video_prompt": "Cat pouncing...", "voiceover": "แมวน่ารักมาก..."}
 ]`;
 
     try {
@@ -192,6 +192,7 @@ Example output format:
         return parsed.map(item => ({
           image_prompt: item.image_prompt || '',
           video_prompt: item.video_prompt || '',
+          voiceover: item.voiceover || '',
           timestamp: Date.now()
         }));
       }
@@ -227,6 +228,10 @@ Example output format:
           <div class="result-field">
             <strong>Video:</strong>
             <p>${item.video_prompt}</p>
+          </div>
+          <div class="result-field">
+            <strong>Voiceover:</strong>
+            <p>${item.voiceover || '-'}</p>
           </div>
         </div>
       </div>
@@ -275,10 +280,11 @@ Example output format:
       return;
     }
 
-    const headers = ['image_prompt', 'video_prompt'];
+    const headers = ['image_prompt', 'video_prompt', 'voiceover'];
     const rows = this.data.map(item => [
       `"${item.image_prompt.replace(/"/g, '""')}"`,
-      `"${item.video_prompt.replace(/"/g, '""')}"`
+      `"${item.video_prompt.replace(/"/g, '""')}"`,
+      `"${(item.voiceover || '').replace(/"/g, '""')}"`
     ]);
 
     const csvContent = [
