@@ -1,33 +1,33 @@
 :root {
-  /* Primary Colors - Soft Sage Green (Eye-Friendly) */
-  --color-primary: #84a59d;
-  --color-primary-dark: #52796f;
-  --color-primary-light: #cad2c5;
+  /* Primary Colors - Clear Sage Green */
+  --color-primary: #52b788;
+  --color-primary-dark: #40916c;
+  --color-primary-light: #b7e4c7;
 
-  /* Neutral Colors - Muted Earth Tones */
-  --color-white: #f0f4f0;
-  --color-bg: #354f52; /* Muted Dark Slate Green */
-  --color-bg-inset: #2f3e46; /* Deeper for contrast */
-  --color-surface: #3d5a5e; 
-  --color-border: #52796f;
-  --color-border-light: rgba(132, 165, 157, 0.2);
+  /* Neutral Colors - Deep Dark Earth (Higher Contrast) */
+  --color-white: #f8f9f8;
+  --color-bg: #1a2421; /* Very Dark Slate for depth */
+  --color-bg-inset: #131a17; /* Even deeper */
+  --color-surface: #243330; 
+  --color-border: #3a4d48;
+  --color-border-light: rgba(82, 183, 136, 0.15);
 
-  /* Text Colors - Soft Contrast */
-  --color-text-primary: #cad2c5; /* Muted Cream/Green */
-  --color-text-secondary: #a0ada0;
+  /* Text Colors - High Visibility Off-White */
+  --color-text-primary: #e0eadd; /* Bright Cream/Green - very readable */
+  --color-text-secondary: #9db49d;
   --color-text-hint: #6b7a6b;
-  --color-text-on-primary: #2f3e46;
-  --color-text-on-red: #cad2c5;
-  --color-text-on-red-muted: rgba(202, 210, 197, 0.7);
+  --color-text-on-primary: #131a17;
+  --color-text-on-red: #e0eadd;
+  --color-text-on-red-muted: rgba(224, 234, 221, 0.7);
 
   /* Border on Base */
-  --color-border-on-red: rgba(132, 165, 157, 0.3);
+  --color-border-on-red: rgba(82, 183, 136, 0.3);
 
-  /* Status Colors - Muted */
-  --color-success: #84a59d;
-  --color-warning: #bd9b7d;
-  --color-error: #a37a7a;
-  --color-info: #7a94a3;
+  /* Status Colors - Muted but distinct */
+  --color-success: #52b788;
+  --color-warning: #d4a373;
+  --color-error: #e63946;
+  --color-info: #457b9d;
 
   /* Spacing */
   --spacing-xs: 4px;
@@ -42,11 +42,11 @@
   --radius-lg: 12px;
   --radius-full: 9999px;
 
-  /* Shadows - Softened */
-  --shadow-sm: 0 1px 2px rgba(0, 0, 0, 0.2);
-  --shadow-md: 0 4px 6px rgba(0, 0, 0, 0.25);
-  --shadow-lg: 0 10px 15px rgba(0, 0, 0, 0.3);
-  --shadow-card: 0 4px 12px rgba(0, 0, 0, 0.3);
+  /* Shadows - Defined */
+  --shadow-sm: 0 1px 3px rgba(0, 0, 0, 0.4);
+  --shadow-md: 0 4px 8px rgba(0, 0, 0, 0.5);
+  --shadow-lg: 0 10px 20px rgba(0, 0, 0, 0.6);
+  --shadow-card: 0 4px 15px rgba(0, 0, 0, 0.5);
 
   /* Transitions */
   --transition-fast: 150ms ease;
@@ -61,9 +61,9 @@
   --font-size-xl: 18px;
 
   /* Aliases */
-  --bg-secondary: #3d5a5e;
-  --bg-tertiary: #2f3e46;
-  --text-secondary: #a0ada0;
-  --accent-color: #84a59d;
-  --border-color: #52796f;
+  --bg-secondary: #243330;
+  --bg-tertiary: #131a17;
+  --text-secondary: #9db49d;
+  --accent-color: #52b788;
+  --border-color: #3a4d48;
 }
