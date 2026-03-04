@@ -708,3 +708,97 @@ textarea.form-control {
   opacity: 0.6;
   cursor: not-allowed;
 }
+
+/* Prompt List (Copy View) Styles */
+.prompt-copy-list {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+  margin-top: 8px;
+}
+
+.prompt-card {
+  background: var(--color-surface);
+  border: 1px solid var(--color-border);
+  border-radius: 12px;
+  overflow: hidden;
+  box-shadow: 0 2px 8px rgba(0,0,0,0.05);
+}
+
+.prompt-card-header {
+  padding: 8px 12px;
+  background: var(--color-bg-inset);
+  border-bottom: 1px solid var(--color-border);
+}
+
+.prompt-card-index {
+  font-size: 12px;
+  font-weight: 700;
+  color: var(--color-primary);
+  text-transform: uppercase;
+}
+
+.prompt-card-body {
+  padding: 12px;
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.copy-group {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.copy-group label {
+  font-size: 11px;
+  font-weight: 600;
+  color: var(--color-text-secondary);
+}
+
+.copy-input-wrapper {
+  position: relative;
+  display: flex;
+  gap: 8px;
+  align-items: flex-start;
+}
+
+.copy-input-wrapper textarea {
+  flex: 1;
+  min-height: 60px;
+  padding: 10px;
+  background: var(--color-bg-inset);
+  border: 1px solid var(--color-border);
+  border-radius: 8px;
+  font-size: 12px;
+  color: var(--color-text-primary);
+  resize: none;
+  line-height: 1.4;
+  cursor: default;
+}
+
+.btn-copy-icon {
+  flex-shrink: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 32px;
+  height: 32px;
+  background: var(--color-surface);
+  border: 1px solid var(--color-border);
+  border-radius: 8px;
+  color: var(--color-text-secondary);
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.btn-copy-icon:hover {
+  background: var(--color-bg-inset);
+  border-color: var(--color-primary);
+  color: var(--color-primary);
+}
+
+.btn-copy-icon:active {
+  transform: scale(0.95);
+}
