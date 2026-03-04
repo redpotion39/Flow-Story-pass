@@ -30,7 +30,7 @@ chrome.runtime.onInstalled.addListener(async (details) => {
     await chrome.storage.local.set(defaults);
   }
 
-  createContextMenus();
+  await refreshContextMenus();
 
   if (details.reason === 'install' || details.reason === 'update') {
     injectContentScriptsToAllTabs();
@@ -38,62 +38,84 @@ chrome.runtime.onInstalled.addListener(async (details) => {
 });
 
 /**
- * Create Context Menus grouped under a parent
+ * Rebuild Context Menus based on data count
  */
-function createContextMenus() {
+async function refreshContextMenus() {
+  const result = await chrome.storage.local.get(['ollamaCleanedData', 'nextPasteIndex']);
+  const data = result.ollamaCleanedData || [];
+  const index = result.nextPasteIndex || 0;
+  const totalCount = data.length;
+  
+  // Clear all first
   chrome.contextMenus.removeAll(() => {
-    // Parent Menu
-    chrome.contextMenus.create({
-      id: 'aiStoryMain',
-      title: 'AI Story (Scene #1)',
-      contexts: ['editable', 'all']
-    });
+    if (totalCount === 0) {
+      // Show placeholder if no data
+      chrome.contextMenus.create({
+        id: 'noData',
+        title: 'AI Story: (No Data)',
+        enabled: false,
+        contexts: ['all']
+      });
+    } else {
+      // Parent Menu
+      const sceneNum = (index % totalCount) + 1;
+      chrome.contextMenus.create({
+        id: 'aiStoryMain',
+        title: `AI Story (Scene #${sceneNum})`,
+        contexts: ['editable', 'all']
+      });
 
-    // Generate menu for 5 scenes
-    for (let i = 1; i <= 5; i++) {
+      // Show up to 5 scenes
+      const scenesToShow = Math.min(5, totalCount);
+      for (let i = 1; i <= scenesToShow; i++) {
+        const absIdx = (index + i - 1);
+        const absSceneNum = (absIdx % totalCount) + 1;
+        const suffix = ` (#${absSceneNum})`;
+
+        chrome.contextMenus.create({
+          id: `s${i}_img`,
+          parentId: 'aiStoryMain',
+          title: `S${i}: Img${suffix}`,
+          contexts: ['editable']
+        });
+        chrome.contextMenus.create({
+          id: `s${i}_vdo`,
+          parentId: 'aiStoryMain',
+          title: `S${i}: Vdo${suffix}`,
+          contexts: ['editable']
+        });
+        
+        chrome.contextMenus.create({
+          id: `sep_${i}`,
+          parentId: 'aiStoryMain',
+          type: 'separator',
+          contexts: ['editable']
+        });
+      }
+
       chrome.contextMenus.create({
-        id: `s${i}_img`,
+        id: 'nextSet',
         parentId: 'aiStoryMain',
-        title: `S${i}: Img`,
-        contexts: ['editable']
+        title: 'Next Set (+5 Scenes)',
+        contexts: ['all']
       });
+
       chrome.contextMenus.create({
-        id: `s${i}_vdo`,
+        id: 'deleteCurrentFive',
         parentId: 'aiStoryMain',
-        title: `S${i}: Vdo`,
-        contexts: ['editable']
-      });
-      
-      chrome.contextMenus.create({
-        id: `sep_${i}`,
-        parentId: 'aiStoryMain',
-        type: 'separator',
-        contexts: ['editable']
+        title: '🔥 Delete these 5 and Shift',
+        contexts: ['all']
       });
     }
 
-    chrome.contextMenus.create({
-      id: 'nextSet',
-      parentId: 'aiStoryMain',
-      title: 'Next Set (+5 Scenes)',
-      contexts: ['all']
-    });
-
-    chrome.contextMenus.create({
-      id: 'deleteCurrentFive',
-      parentId: 'aiStoryMain',
-      title: '🔥 Delete these 5 and Shift',
-      contexts: ['all']
-    });
-
-    chrome.contextMenus.create({
-      id: 'resetPasteIndex',
-      parentId: 'aiStoryMain',
-      title: 'Reset to Scene #1',
-      contexts: ['all']
-    });
-    
-    updateContextMenuTitle();
+    // Always show Reset option if we have any data
+    if (totalCount > 0) {
+      chrome.contextMenus.create({
+        id: 'resetPasteIndex',
+        title: 'Reset to Scene #1',
+        contexts: ['all']
+      });
+    }
   });
 }
 
@@ -121,7 +143,7 @@ chrome.contextMenus.onClicked.addListener(async (info, tab) => {
   else if (info.menuItemId === 'nextSet') {
     const nextIndex = (index + 5) % (chronologicalData.length || 1);
     await chrome.storage.local.set({ nextPasteIndex: nextIndex });
-    updateContextMenuTitle(nextIndex, chronologicalData.length);
+    await refreshContextMenus();
   }
   // Delete current 5 and Shift
   else if (info.menuItemId === 'deleteCurrentFive') {
@@ -139,52 +161,15 @@ chrome.contextMenus.onClicked.addListener(async (info, tab) => {
       nextPasteIndex: nextIdx 
     });
     
-    updateContextMenuTitle(nextIdx, newData.length);
+    await refreshContextMenus();
     chrome.runtime.sendMessage({ action: 'dataUpdated' });
   }
   // Reset
   else if (info.menuItemId === 'resetPasteIndex') {
     await chrome.storage.local.set({ nextPasteIndex: 0 });
-    updateContextMenuTitle(0, chronologicalData.length);
+    await refreshContextMenus();
   }
 });
-
-/**
- * Update Context Menu title to show progress
- */
-async function updateContextMenuTitle(nextIdx = -1, total = -1) {
-  let displayIdx = nextIdx;
-  let displayTotal = total;
-
-  try {
-    const result = await chrome.storage.local.get(['nextPasteIndex', 'ollamaCleanedData']);
-    if (displayIdx === -1) displayIdx = result.nextPasteIndex || 0;
-    if (displayTotal === -1) displayTotal = (result.ollamaCleanedData || []).length;
-
-    const sceneNum = displayTotal > 0 ? (displayIdx % displayTotal) + 1 : 1;
-    const mainTitle = displayTotal > 0 ? `AI Story (Scene #${sceneNum})` : 'AI Story (No Data)';
-    
-    chrome.contextMenus.update('aiStoryMain', { title: mainTitle });
-    
-    for (let i = 1; i <= 5; i++) {
-      const absIdx = (displayIdx + i - 1);
-      const absScene = displayTotal > 0 ? (absIdx % displayTotal) + 1 : i;
-      const hasData = displayTotal > 0 && absIdx < displayTotal; // Optional: mark if beyond current list
-      
-      const suffix = displayTotal > 0 ? ` (#${absScene})` : ' (-)';
-      chrome.contextMenus.update(`s${i}_img`, { 
-        title: `S${i}: Img${suffix}`,
-        enabled: displayTotal > 0
-      });
-      chrome.contextMenus.update(`s${i}_vdo`, { 
-        title: `S${i}: Vdo${suffix}`,
-        enabled: displayTotal > 0
-      });
-    }
-  } catch (e) {
-    console.error('[Background] Error updating context menu:', e);
-  }
-}
 
 /**
  * Inject content script to a specific tab
@@ -236,7 +221,7 @@ chrome.runtime.onMessage.addListener((message, sender, sendResponse) => {
     return true;
   }
   if (message.action === 'dataUpdated') {
-    updateContextMenuTitle();
+    refreshContextMenus();
     return true;
   }
 });
