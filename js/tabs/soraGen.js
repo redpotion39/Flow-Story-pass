@@ -146,7 +146,7 @@ const SoraGen = {
    */
   async generateWithAI(structure, instruction, count) {
     const systemPrompt = `You are an expert Sora2 Prompt Engineer.
-The user provides a structured description in this format: "Camera Angle - Who - Clothing - Action - Where - How - Atmosphere".
+The user provides a structured description in this format: "Camera Angle - Who - Clothing - Action - Where - อย่างไร - Atmosphere".
 Your task is to expand this into ${count} unique, high-quality, and highly detailed prompts for Sora2.
 
 Rules:
