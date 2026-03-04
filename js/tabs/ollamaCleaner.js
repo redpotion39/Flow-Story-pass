@@ -6,7 +6,7 @@
 const OllamaCleaner = {
   // API Configuration
   config: {
-    apiKey: 'd0bbe723d13f444497026a93d539e789.o-uDUq2EFmZrycjmrMVI-nka',
+    apiKey: '',
     model: 'qwen3-coder-next:cloud',
     backupModel: 'minimax-m2.5:cloud',
     host: 'https://ollama.com'
@@ -32,7 +32,7 @@ async updateConfig() {
   const result = await chrome.storage.local.get(['ollamaApiKey', 'ollamaModel']);
 
   // Update active config
-  this.config.apiKey = result.ollamaApiKey || 'd0bbe723d13f444497026a93d539e789.o-uDUq2EFmZrycjmrMVI-nka';
+  this.config.apiKey = result.ollamaApiKey || '';
   this.config.model = result.ollamaModel || 'qwen3-coder-next:cloud';
 
   // Update UI display
@@ -104,6 +104,15 @@ async updateConfig() {
    * Handle cleaning the raw input
    */
   async handleClean() {
+    // Check if API key is set
+    if (!this.config.apiKey) {
+      showToast('กรุณาตั้งค่า Ollama API Key ในหน้าตั้งค่าก่อนใช้งาน', 'error');
+      // Open settings modal
+      const settingsBtn = document.getElementById('settingsBtn');
+      if (settingsBtn) settingsBtn.click();
+      return;
+    }
+
     const rawText = this.elements.rawInput.value.trim();
     if (!rawText) {
       showToast('กรุณากรอกข้อมูลจาก Gemini', 'error');
