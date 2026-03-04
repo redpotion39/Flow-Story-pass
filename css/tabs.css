@@ -817,3 +817,19 @@ textarea.form-control {
 .delete-prompt-btn:hover {
   color: #e74c3c;
 }
+
+.next-paste-badge {
+  font-size: 10px;
+  font-weight: 700;
+  color: var(--color-text-on-primary);
+  background-color: var(--color-primary);
+  padding: 2px 8px;
+  border-radius: 10px;
+  white-space: nowrap;
+}
+
+.next-paste-badge.empty {
+  background-color: var(--color-bg-inset);
+  color: var(--color-text-hint);
+  border: 1px solid var(--color-border);
+}

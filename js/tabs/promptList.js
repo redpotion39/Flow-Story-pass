@@ -25,7 +25,9 @@ const PromptList = {
       refreshBtn: document.getElementById('promptListRefreshBtn'),
       clearAllBtn: document.getElementById('promptListClearAllBtn'),
       exportBtn: document.getElementById('promptListExportBtn'),
-      importBtn: document.getElementById('promptListImportBtn')
+      importBtn: document.getElementById('promptListImportBtn'),
+      resetPasteBtn: document.getElementById('promptListResetPasteBtn'),
+      nextPasteIndicator: document.getElementById('nextPasteIndicator')
     };
   },
 
@@ -39,6 +41,14 @@ const PromptList = {
         await this.loadAndRender();
         setTimeout(() => this.elements.refreshBtn.classList.remove('spin'), 500);
         showToast('รีเฟรชรายการแล้ว', 'success');
+      });
+    }
+
+    if (this.elements.resetPasteBtn) {
+      this.elements.resetPasteBtn.addEventListener('click', async () => {
+        await chrome.storage.local.set({ nextPasteIndex: 0 });
+        await this.updateNextPasteIndicator();
+        showToast('เริ่มลำดับการวางใหม่แล้ว', 'info');
       });
     }
 
@@ -77,12 +87,30 @@ const PromptList = {
     const result = await chrome.storage.local.get('ollamaCleanedData');
     let rawData = result.ollamaCleanedData || [];
     
-    // Sort oldest to newest (ascending timestamp)
-    // In CleanData tab, we unshift/prepend, so the array itself is newest to oldest.
-    // We reverse it to get oldest first.
+    // Sort oldest to newest
     this.data = [...rawData].reverse();
     
     this.render();
+    await this.updateNextPasteIndicator();
+  },
+
+  /**
+   * Update the indicator showing which prompt is next for right-click paste
+   */
+  async updateNextPasteIndicator() {
+    if (!this.elements.nextPasteIndicator) return;
+    
+    const result = await chrome.storage.local.get(['nextPasteIndex', 'ollamaCleanedData']);
+    const index = result.nextPasteIndex || 0;
+    const total = (result.ollamaCleanedData || []).length;
+    
+    if (total === 0) {
+      this.elements.nextPasteIndicator.textContent = 'No Prompts';
+      this.elements.nextPasteIndicator.classList.add('empty');
+    } else {
+      this.elements.nextPasteIndicator.textContent = `Next: #${(index % total) + 1}`;
+      this.elements.nextPasteIndicator.classList.remove('empty');
+    }
   },
 
   /**
@@ -399,6 +427,7 @@ const PromptList = {
    * Simple HTML escape
    */
   escapeHtml(text) {
+    if (!text) return '';
     const div = document.createElement('div');
     div.textContent = text;
     return div.innerHTML.replace(/"/g, '&quot;');

@@ -12,7 +12,8 @@
     "downloads",
     "scripting",
     "tabs",
-    "debugger"
+    "debugger",
+    "contextMenus"
   ],
   "host_permissions": [
     "<all_urls>",
@@ -30,6 +31,11 @@
       "js": ["content/tiktok.js"],
       "css": ["css/content.css"],
       "run_at": "document_idle"
+    },
+    {
+      "matches": ["<all_urls>"],
+      "js": ["content/general.js"],
+      "run_at": "document_start"
     }
   ],
   "action": {
