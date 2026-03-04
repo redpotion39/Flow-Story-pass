@@ -10,182 +10,27 @@ class FlowAIUnlocked {
   }
 
   async init() {
-    await this.checkLicense();
+    // Initialize the app directly (license removed)
+    await this.initApp();
   }
 
   /**
-   * Check license before starting app
-   */
-  async checkLicense() {
-    // Initialize license module
-    await License.init();
-
-    // Display machine ID
-    this.displayMachineId();
-
-    // Setup license form events
-    this.setupLicenseForm();
-
-    // License disabled - show app directly
-    this.showApp();
-  }
-
-  /**
-   * Display machine ID on license screen
+   * Display machine ID (still available if needed)
    */
   displayMachineId() {
-    const machineIdEl = document.getElementById('machineIdDisplay');
-    if (machineIdEl && License.machineId) {
-      machineIdEl.textContent = License.machineId;
+    // If License module is still loaded, we can show it
+    if (typeof License !== 'undefined' && License.machineId) {
+      const machineIdEl = document.getElementById('machineIdDisplay');
+      if (machineIdEl) machineIdEl.textContent = License.machineId;
     }
   }
 
   /**
-   * Setup license form event listeners
-   */
-  setupLicenseForm() {
-    const input = document.getElementById('licenseKeyInput');
-    const submitBtn = document.getElementById('licenseSubmitBtn');
-
-    // Submit on button click
-    submitBtn.addEventListener('click', () => this.handleLicenseSubmit());
-
-    // Submit on Enter key
-    input.addEventListener('keypress', (e) => {
-      if (e.key === 'Enter') {
-        this.handleLicenseSubmit();
-      }
-    });
-
-    // Auto-format license key input (add dashes)
-    input.addEventListener('input', (e) => {
-      let value = e.target.value.replace(/[^a-zA-Z0-9]/g, '').toUpperCase();
-      if (value.length > 16) value = value.substring(0, 16);
-
-      // Add dashes every 4 characters
-      const parts = value.match(/.{1,4}/g) || [];
-      e.target.value = parts.join('-');
-    });
-  }
-
-  /**
-   * Handle license form submission
-   */
-  async handleLicenseSubmit() {
-    const input = document.getElementById('licenseKeyInput');
-    const submitBtn = document.getElementById('licenseSubmitBtn');
-    const licenseKey = input.value.trim();
-
-    if (!licenseKey) {
-      this.showLicenseMessage('กรุณากรอก License Key', 'error');
-      input.classList.add('error');
-      return;
-    }
-
-    // Disable form
-    input.disabled = true;
-    submitBtn.disabled = true;
-    submitBtn.classList.add('loading');
-    this.showLicenseMessage('กำลังตรวจสอบ...', 'info');
-
-    try {
-      const result = await License.validateAndActivate(licenseKey);
-
-      if (result.success) {
-        input.classList.remove('error');
-        input.classList.add('success');
-        this.showLicenseMessage(result.message, 'success');
-
-        // Wait a moment then show app
-        setTimeout(() => {
-          this.showApp();
-        }, 1000);
-      } else {
-        input.classList.add('error');
-        input.classList.remove('success');
-        this.showLicenseMessage(result.message, 'error');
-
-        // Open aiunlock.co for invalid license
-        if (result.code === 'LICENSE_NOT_FOUND' || result.code === 'LICENSE_INACTIVE' ||
-            result.code === 'LICENSE_EXPIRED' || result.code === 'MAX_ACTIVATIONS_REACHED' ||
-            result.code === 'PROGRAM_MISMATCH') {
-          setTimeout(() => {
-            window.open('https://aiunlock.co', '_blank');
-          }, 1500);
-        }
-
-        // Re-enable form
-        input.disabled = false;
-        submitBtn.disabled = false;
-        submitBtn.classList.remove('loading');
-      }
-    } catch (error) {
-      console.error('License submit error:', error);
-      this.showLicenseMessage('เกิดข้อผิดพลาด กรุณาลองใหม่', 'error');
-
-      // Re-enable form
-      input.disabled = false;
-      submitBtn.disabled = false;
-      submitBtn.classList.remove('loading');
-    }
-  }
-
-  /**
-   * Show license message
-   */
-  showLicenseMessage(message, type = 'info') {
-    const msgEl = document.getElementById('licenseMessage');
-    msgEl.textContent = message;
-    msgEl.className = `license-message ${type}`;
-  }
-
-  /**
-   * Show license overlay
-   */
-  showLicenseOverlay() {
-    document.getElementById('licenseOverlay').hidden = false;
-    document.getElementById('appContainer').hidden = true;
-  }
-
-  /**
-   * Show main app (hide license overlay)
+   * Show main app (immediate initialization)
    */
   showApp() {
-    document.getElementById('licenseOverlay').hidden = true;
+    // Already unhidden by HTML default, but keeping for compatibility
     document.getElementById('appContainer').hidden = false;
-
-    // Initialize the app
-    this.initApp();
-
-    // Start license heartbeat
-    License.startHeartbeat();
-
-    // Handle license invalidation
-    License.onLicenseInvalid = (result) => {
-      console.warn('License became invalid:', result);
-      showToast('License ไม่ถูกต้องหรือหมดอายุ', 'error');
-      setTimeout(() => {
-        this.handleLogout();
-      }, 2000);
-    };
-  }
-
-  /**
-   * Handle logout
-   */
-  async handleLogout() {
-    License.stopHeartbeat();
-    await License.clearLicense();
-    this.showLicenseOverlay();
-
-    // Clear the input
-    const input = document.getElementById('licenseKeyInput');
-    input.value = '';
-    input.classList.remove('error', 'success');
-    input.disabled = false;
-    document.getElementById('licenseSubmitBtn').disabled = false;
-    document.getElementById('licenseSubmitBtn').classList.remove('loading');
-    document.getElementById('licenseMessage').textContent = '';
   }
 
   /**
@@ -427,16 +272,6 @@ class FlowAIUnlocked {
         await this.refreshData();
         refreshBtn.classList.remove('spinning');
         showToast('รีเฟรชข้อมูลเรียบร้อย', 'success');
-      });
-    }
-
-    // Logout button
-    const logoutBtn = document.getElementById('logoutBtn');
-    if (logoutBtn) {
-      logoutBtn.addEventListener('click', () => {
-        if (confirm('ต้องการออกจากระบบหรือไม่?')) {
-          this.handleLogout();
-        }
       });
     }
 
