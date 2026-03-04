@@ -118,6 +118,15 @@
         </svg>
         สร้างเสียง
       </button>
+      <button class="tab-btn" data-tab="ollama-cleaner">
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+          <path d="M21 16V8a2 2 0 0 0-1-1.73l-7-4a2 2 0 0 0-2 0l-7 4A2 2 0 0 0 3 8v8a2 2 0 0 0 1 1.73l7 4a2 2 0 0 0 2 0l7-4A2 2 0 0 0 21 16z"></path>
+          <polyline points="3.27 6.96 12 12.01 20.73 6.96"></polyline>
+          <line x1="12" y1="22.08" x2="12" y2="12"></line>
+        </svg>
+        Ollama
+        <span id="ollamaCountBadge" class="tab-badge" hidden>0</span>
+      </button>
     </nav>
 
     <!-- Tab Contents -->
@@ -639,6 +648,44 @@
         </section>
       </div>
 
+      <!-- Tab 4: Ollama Cleaner -->
+      <div class="tab-content" id="tab-ollama-cleaner">
+        <section class="section">
+          <h2 class="section-title">Ollama Prompt Cleaner</h2>
+          <div class="form-group">
+            <label for="ollamaRawInput">วางข้อมูลจาก Gemini</label>
+            <textarea id="ollamaRawInput" class="form-control" rows="8" placeholder="วาง Prompt ที่คัดลอกมาจาก Gemini ที่นี่..."></textarea>
+          </div>
+          <div class="button-row">
+            <button class="btn btn-primary" id="ollamaCleanBtn" style="flex: 2;">
+              <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                <path d="M12 2v4m0 12v4M4.93 4.93l2.83 2.83m8.48 8.48l2.83 2.83M2 12h4m12 0h4M4.93 19.07l2.83-2.83m8.48-8.48l2.83-2.83"/>
+              </svg>
+              ทำความสะอาดข้อมูล
+            </button>
+            <button class="btn btn-outline" id="ollamaClearBtn">ล้าง</button>
+          </div>
+          <div id="ollamaStatus" class="status-msg" hidden></div>
+        </section>
+
+        <section class="section">
+          <div class="section-header" style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 12px;">
+            <h2 class="section-title">ข้อมูลที่ประมวลผลแล้ว</h2>
+            <button class="btn btn-success btn-sm" id="ollamaExportBtn">
+              <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/>
+                <polyline points="7 10 12 15 17 10"/>
+                <line x1="12" y1="15" x2="12" y2="3"/>
+              </svg>
+              Export CSV
+            </button>
+          </div>
+          <div id="ollamaResultsList" class="ollama-results-list">
+            <div class="empty-message">ไม่มีข้อมูลที่ประมวลผลแล้ว</div>
+          </div>
+        </section>
+      </div>
+
     </main>
 
     <!-- Footer -->
@@ -1090,6 +1137,7 @@
   <script src="../js/modules/formState.js"></script>
   <script src="../js/tabs/tiktokUploader.js"></script>
   <script src="../js/tabs/ttsGenerator.js"></script>
+  <script src="../js/tabs/ollamaCleaner.js"></script>
   <!-- <script src="../js/api/webhookHandler.js"></script> -->
   <script src="../js/sidebar.js"></script>
 </body>

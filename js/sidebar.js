@@ -238,6 +238,9 @@ class FlowAIUnlocked {
     // Initialize TTS Generator
     if (typeof TTSGenerator !== 'undefined') TTSGenerator.init();
 
+    // Initialize Ollama Cleaner
+    if (typeof OllamaCleaner !== 'undefined') OllamaCleaner.init();
+
     console.log('Flow Story initialized');
   }
 
