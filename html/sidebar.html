@@ -651,7 +651,10 @@
       <!-- Tab 4: Ollama Cleaner -->
       <div class="tab-content" id="tab-ollama-cleaner">
         <section class="section">
-          <h2 class="section-title">Ollama Prompt Cleaner</h2>
+          <div class="section-header" style="display: flex; justify-content: space-between; align-items: center;">
+            <h2 class="section-title">Ollama Prompt Cleaner</h2>
+            <div id="ollamaCurrentModelDisplay" class="text-sm" style="color: var(--color-primary); font-weight: 500;">Model: qwen3-coder-next:cloud</div>
+          </div>
           <div class="form-group">
             <label for="ollamaRawInput">วางข้อมูลจาก Gemini</label>
             <textarea id="ollamaRawInput" class="form-control" rows="8" placeholder="วาง Prompt ที่คัดลอกมาจาก Gemini ที่นี่..."></textarea>
@@ -722,6 +725,15 @@
         <div class="form-group">
           <label for="openaiApiKey">OpenAI API Key</label>
           <input type="password" id="openaiApiKey" placeholder="กรอก OpenAI API Key...">
+        </div>
+        <div class="form-group">
+          <label for="ollamaApiKey">Ollama API Key (Cloud)</label>
+          <input type="password" id="ollamaApiKey" placeholder="กรอก Ollama API Key...">
+        </div>
+        <div class="form-group">
+          <label for="ollamaModel">Ollama Model</label>
+          <input type="text" id="ollamaModel" placeholder="เช่น qwen3-coder-next:cloud">
+          <p class="field-hint">Default: qwen3-coder-next:cloud</p>
         </div>
 
         <!-- Delay Settings -->

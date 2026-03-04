@@ -495,6 +495,9 @@ class FlowAIUnlocked {
     if (typeof VideoPromptTemplateSelector !== 'undefined') {
       await VideoPromptTemplateSelector.reload();
     }
+    if (typeof OllamaCleaner !== 'undefined') {
+      await OllamaCleaner.updateConfig();
+    }
   }
 
   /**
@@ -549,10 +552,12 @@ class FlowAIUnlocked {
    * Load settings to modal
    */
   async loadSettingsToModal() {
-    const result = await chrome.storage.local.get(['geminiApiKey', 'openaiApiKey', 'selectedModel']);
+    const result = await chrome.storage.local.get(['geminiApiKey', 'openaiApiKey', 'ollamaApiKey', 'ollamaModel', 'selectedModel']);
 
     document.getElementById('geminiApiKey').value = result.geminiApiKey || '';
     document.getElementById('openaiApiKey').value = result.openaiApiKey || '';
+    document.getElementById('ollamaApiKey').value = result.ollamaApiKey || '';
+    document.getElementById('ollamaModel').value = result.ollamaModel || 'qwen3-coder-next:cloud';
 
     const model = result.selectedModel || 'gemini';
     document.getElementById('toggleGemini').classList.toggle('active', model === 'gemini');
@@ -565,13 +570,22 @@ class FlowAIUnlocked {
   async saveSettings() {
     const geminiKey = document.getElementById('geminiApiKey').value.trim();
     const openaiKey = document.getElementById('openaiApiKey').value.trim();
+    const ollamaKey = document.getElementById('ollamaApiKey').value.trim();
+    const ollamaModel = document.getElementById('ollamaModel').value.trim() || 'qwen3-coder-next:cloud';
     const model = document.getElementById('toggleGemini').classList.contains('active') ? 'gemini' : 'openai';
 
     await chrome.storage.local.set({
       geminiApiKey: geminiKey,
       openaiApiKey: openaiKey,
+      ollamaApiKey: ollamaKey,
+      ollamaModel: ollamaModel,
       selectedModel: model
     });
+
+    // Update Ollama config if active
+    if (typeof OllamaCleaner !== 'undefined') {
+      await OllamaCleaner.updateConfig();
+    }
 
     showToast('บันทึกการตั้งค่าเรียบร้อย', 'success');
   }

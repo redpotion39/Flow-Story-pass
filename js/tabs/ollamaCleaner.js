@@ -14,19 +14,37 @@ const OllamaCleaner = {
 
   // State
   data: [],
+/**
+ * Initialize the module
+ */
+async init() {
+  this.cacheElements();
+  this.setupEventListeners();
+  await this.updateConfig();
+  await this.loadData();
+  this.renderData();
+},
 
-  /**
-   * Initialize the module
-   */
-  async init() {
-    this.cacheElements();
-    this.setupEventListeners();
-    await this.loadData();
-    this.renderData();
-  },
+/**
+ * Update configuration from storage
+ */
+async updateConfig() {
+  const result = await chrome.storage.local.get(['ollamaApiKey', 'ollamaModel']);
 
-  /**
-   * Cache DOM elements
+  // Update active config
+  this.config.apiKey = result.ollamaApiKey || 'd0bbe723d13f444497026a93d539e789.o-uDUq2EFmZrycjmrMVI-nka';
+  this.config.model = result.ollamaModel || 'qwen3-coder-next:cloud';
+
+  // Update UI display
+  const modelDisplay = document.getElementById('ollamaCurrentModelDisplay');
+  if (modelDisplay) {
+    modelDisplay.textContent = `Model: ${this.config.model}`;
+  }
+},
+
+/**
+ * Cache DOM elements
+...
    */
   cacheElements() {
     this.elements = {
