@@ -22,7 +22,8 @@ const PromptList = {
   cacheElements() {
     this.elements = {
       list: document.getElementById('promptCopyList'),
-      refreshBtn: document.getElementById('promptListRefreshBtn')
+      refreshBtn: document.getElementById('promptListRefreshBtn'),
+      clearAllBtn: document.getElementById('promptListClearAllBtn')
     };
   },
 
@@ -36,6 +37,16 @@ const PromptList = {
         await this.loadAndRender();
         setTimeout(() => this.elements.refreshBtn.classList.remove('spin'), 500);
         showToast('รีเฟรชรายการแล้ว', 'success');
+      });
+    }
+
+    if (this.elements.clearAllBtn) {
+      this.elements.clearAllBtn.addEventListener('click', async () => {
+        if (this.data.length === 0) return;
+        
+        if (confirm('ต้องการล้างข้อมูลทั้งหมดหรือไม่? การกระทำนี้ไม่สามารถย้อนกลับได้')) {
+          await this.clearAllData();
+        }
       });
     }
 
@@ -164,6 +175,24 @@ const PromptList = {
     }
     
     showToast('ลบรายการแล้ว', 'success');
+  },
+
+  /**
+   * Clear all data
+   */
+  async clearAllData() {
+    await chrome.storage.local.set({ ollamaCleanedData: [] });
+    
+    // Refresh display
+    await this.loadAndRender();
+    
+    // Also update CleanData count if visible
+    if (typeof OllamaCleaner !== 'undefined') {
+      await OllamaCleaner.loadData();
+      OllamaCleaner.renderData();
+    }
+    
+    showToast('ล้างข้อมูลทั้งหมดแล้ว', 'success');
   },
 
   /**
