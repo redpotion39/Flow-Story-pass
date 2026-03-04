@@ -89,6 +89,9 @@ class FlowAIUnlocked {
     // Initialize Prompt List
     if (typeof PromptList !== 'undefined') PromptList.init();
 
+    // Initialize Sora Gen
+    if (typeof SoraGen !== 'undefined') SoraGen.init();
+
     // console.log('Flow Story initialized');
   }
 
@@ -335,6 +338,9 @@ class FlowAIUnlocked {
     }
     if (typeof OllamaCleaner !== 'undefined') {
       await OllamaCleaner.updateConfig();
+    }
+    if (typeof SoraGen !== 'undefined') {
+      await SoraGen.updateConfig();
     }
   }
 

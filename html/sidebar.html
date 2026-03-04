@@ -107,6 +107,14 @@
         </svg>
         Prompt List
       </button>
+      <button class="tab-btn" data-tab="sora-gen">
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+          <path d="M23 7l-7 5 7 5V7z"></path>
+          <rect x="1" y="5" width="15" height="14" rx="2" ry="2"></rect>
+          <path d="M10 2L8 4h4l-2-2z"></path>
+        </svg>
+        Sora Gen
+      </button>
     </nav>
 
     <!-- Tab Contents -->
@@ -711,6 +719,74 @@
         </section>
       </div>
 
+      <!-- Tab 6: Sora PromptGen -->
+      <div class="tab-content" id="tab-sora-gen">
+        <section class="section">
+          <div class="section-header" style="display: flex; justify-content: space-between; align-items: center;">
+            <h2 class="section-title">Sora PromptGen</h2>
+            <div id="soraCurrentModelDisplay" class="text-sm" style="color: var(--color-primary); font-weight: 500;">Model: qwen3-coder-next:cloud</div>
+          </div>
+          
+          <div class="form-group">
+            <label for="soraStructuredInput">โครงสร้าง Prompt</label>
+            <textarea id="soraStructuredInput" class="form-control" rows="3" placeholder="มุมกล้อง-ใคร-แต่งตัว-ทำอะไร-ที่ไหน-อย่าง-บรรยากาศ"></textarea>
+          </div>
+
+          <div class="form-group">
+            <label for="soraCustomInstruction">คำสั่งเพิ่มเติม (Custom Instruction)</label>
+            <textarea id="soraCustomInstruction" class="form-control" rows="2" placeholder="เช่น เจนแบบภาพยนตร์ Cinematic, เน้นโทนสีสดใส..."></textarea>
+          </div>
+
+          <div class="form-row">
+            <div class="form-group" style="flex: 1;">
+              <label for="soraGenCount">จำนวน</label>
+              <input type="number" id="soraGenCount" class="form-control" value="5" min="1" max="20">
+            </div>
+            <div class="form-group" style="flex: 2; display: flex; align-items: flex-end;">
+              <button class="btn btn-primary" id="soraGenerateBtn" style="width: 100%;">
+                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                  <path d="M12 2v4m0 12v4M4.93 4.93l2.83 2.83m8.48 8.48l2.83 2.83M2 12h4m12 0h4M4.93 19.07l2.83-2.83m8.48-8.48l2.83-2.83"/>
+                </svg>
+                สร้าง Prompt
+              </button>
+            </div>
+          </div>
+          
+          <div id="soraStatus" class="status-msg" hidden></div>
+        </section>
+
+        <section class="section">
+          <div class="section-header" style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 12px;">
+            <h2 class="section-title">รายการที่สร้างแล้ว</h2>
+            <div style="display: flex; gap: 6px;">
+              <button class="btn btn-danger btn-sm" id="soraExportBtn" title="ส่งออก CSV">
+                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                  <path d="M4 12v8a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2v-8"/>
+                  <polyline points="16 6 12 2 8 6"/>
+                  <line x1="12" y1="2" x2="12" y2="15"/>
+                </svg>
+              </button>
+              <button class="btn btn-success btn-sm" id="soraImportBtn" title="นำเข้า CSV">
+                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                  <path d="M4 12v8a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2v-8"/>
+                  <polyline points="8 6 12 10 16 6"/>
+                  <line x1="12" y1="10" x2="12" y2="2"/>
+                </svg>
+              </button>
+              <button class="btn btn-danger btn-sm" id="soraClearAllBtn" title="ล้างทั้งหมด">
+                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                  <polyline points="3 6 5 6 21 6"></polyline>
+                  <path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"></path>
+                </svg>
+              </button>
+            </div>
+          </div>
+          <div id="soraResultsList" class="prompt-copy-list">
+            <div class="empty-message">ยังไม่มี Prompt ที่สร้าง</div>
+          </div>
+        </section>
+      </div>
+
     </main>
 
     <!-- Footer -->
@@ -1173,6 +1249,7 @@
   <script src="../js/tabs/ttsGenerator.js"></script>
   <script src="../js/tabs/ollamaCleaner.js"></script>
   <script src="../js/tabs/promptList.js"></script>
+  <script src="../js/tabs/soraGen.js"></script>
   <!-- <script src="../js/api/webhookHandler.js"></script> -->
   <script src="../js/sidebar.js"></script>
 </body>
