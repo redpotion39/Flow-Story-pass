@@ -86,7 +86,7 @@ class FlowAIUnlocked {
     // Initialize Ollama Cleaner
     if (typeof OllamaCleaner !== 'undefined') OllamaCleaner.init();
 
-    console.log('Flow Story initialized');
+    // console.log('Flow Story initialized');
   }
 
   /**

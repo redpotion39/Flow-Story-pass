@@ -37,7 +37,7 @@ const SystemPrompt = {
    */
   setTemplate(template) {
     this.currentTemplate = template;
-    console.log('[SystemPrompt] Template set:', template?.name || 'default');
+    // console.log('[SystemPrompt] Template set:', template?.name || 'default');
   },
 
   /**

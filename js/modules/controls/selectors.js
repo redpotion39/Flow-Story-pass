@@ -27,7 +27,7 @@ async function loadWasmSelectors() {
       _wasmSelectors = await WasmLoader.getAllSelectors();
       console.log('[Controls] WASM selectors loaded');
     } else {
-      console.log('[Controls] Using built-in selectors');
+      // console.log('[Controls] Using built-in selectors');
       _wasmSelectors = getFallbackSelectors();
     }
   } catch (error) {
