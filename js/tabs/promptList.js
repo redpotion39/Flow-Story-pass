@@ -75,39 +75,45 @@ const PromptList = {
       return;
     }
 
-    this.elements.list.innerHTML = this.data.map((item, index) => `
-      <div class="prompt-card">
-        <div class="prompt-card-header">
-          <span class="prompt-card-index">ฉากที่ ${index + 1}</span>
-        </div>
-        <div class="prompt-card-body">
-          <div class="copy-group">
-            <label>Image Prompt</label>
-            <div class="copy-input-wrapper">
-              <textarea readonly>${item.image_prompt}</textarea>
-              <button class="btn-copy-icon" data-text="${this.escapeHtml(item.image_prompt)}" title="คัดลอก Image Prompt">
-                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                  <rect x="9" y="9" width="13" height="13" rx="2" ry="2"></rect>
-                  <path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"></path>
-                </svg>
-              </button>
+    this.elements.list.innerHTML = this.data.map((item, index) => {
+      // Map display index back to original index in storage (reverse of current list)
+      const originalIndex = this.data.length - 1 - index;
+      
+      return `
+        <div class="prompt-card">
+          <div class="prompt-card-header" style="display: flex; justify-content: space-between; align-items: center;">
+            <span class="prompt-card-index">ฉากที่ ${index + 1}</span>
+            <button class="delete-prompt-btn" data-original-index="${originalIndex}" title="ลบรายการนี้">&times;</button>
+          </div>
+          <div class="prompt-card-body">
+            <div class="copy-group">
+              <label>Image Prompt</label>
+              <div class="copy-input-wrapper">
+                <textarea readonly>${item.image_prompt}</textarea>
+                <button class="btn-copy-icon" data-text="${this.escapeHtml(item.image_prompt)}" title="คัดลอก Image Prompt">
+                  <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                    <rect x="9" y="9" width="13" height="13" rx="2" ry="2"></rect>
+                    <path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"></path>
+                  </svg>
+                </button>
+              </div>
+            </div>
+            <div class="copy-group">
+              <label>Video Prompt</label>
+              <div class="copy-input-wrapper">
+                <textarea readonly>${item.video_prompt}</textarea>
+                <button class="btn-copy-icon" data-text="${this.escapeHtml(item.video_prompt)}" title="คัดลอก Video Prompt">
+                  <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                    <rect x="9" y="9" width="13" height="13" rx="2" ry="2"></rect>
+                    <path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"></path>
+                  </svg>
+                </button>
+              </div>
             </div>
           </div>
-          <div class="copy-group">
-            <label>Video Prompt</label>
-            <div class="copy-input-wrapper">
-              <textarea readonly>${item.video_prompt}</textarea>
-              <button class="btn-copy-icon" data-text="${this.escapeHtml(item.video_prompt)}" title="คัดลอก Video Prompt">
-                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                  <rect x="9" y="9" width="13" height="13" rx="2" ry="2"></rect>
-                  <path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"></path>
-                </svg>
-              </button>
-            </div>
-          </div>
         </div>
-      </div>
-    `).join('');
+      `;
+    }).join('');
 
     // Add copy listeners
     this.elements.list.querySelectorAll('.btn-copy-icon').forEach(btn => {
@@ -116,6 +122,41 @@ const PromptList = {
         this.handleCopy(text, e.currentTarget);
       });
     });
+
+    // Add delete listeners
+    this.elements.list.querySelectorAll('.delete-prompt-btn').forEach(btn => {
+      btn.addEventListener('click', async (e) => {
+        const originalIndex = parseInt(e.target.dataset.originalIndex);
+        if (confirm('ต้องการลบฉากนี้หรือไม่?')) {
+          await this.deleteItem(originalIndex);
+        }
+      });
+    });
+  },
+
+  /**
+   * Delete item from storage
+   */
+  async deleteItem(originalIndex) {
+    const result = await chrome.storage.local.get('ollamaCleanedData');
+    let rawData = result.ollamaCleanedData || [];
+    
+    // Remove item at original index
+    rawData.splice(originalIndex, 1);
+    
+    // Save back to storage
+    await chrome.storage.local.set({ ollamaCleanedData: rawData });
+    
+    // Refresh display
+    await this.loadAndRender();
+    
+    // Also update CleanData count if visible
+    if (typeof OllamaCleaner !== 'undefined') {
+      await OllamaCleaner.loadData();
+      OllamaCleaner.renderData();
+    }
+    
+    showToast('ลบรายการแล้ว', 'success');
   },
 
   /**

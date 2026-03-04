@@ -802,3 +802,18 @@ textarea.form-control {
 .btn-copy-icon:active {
   transform: scale(0.95);
 }
+
+.delete-prompt-btn {
+  background: transparent;
+  border: none;
+  color: var(--color-text-hint);
+  font-size: 20px;
+  cursor: pointer;
+  padding: 0 4px;
+  line-height: 1;
+  transition: color 0.2s ease;
+}
+
+.delete-prompt-btn:hover {
+  color: #e74c3c;
+}
