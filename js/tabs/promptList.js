@@ -14,6 +14,13 @@ const PromptList = {
     this.cacheElements();
     this.setupEventListeners();
     await this.loadAndRender();
+
+    // Listen for updates from background (e.g. right-click delete)
+    chrome.runtime.onMessage.addListener((message) => {
+      if (message.action === 'dataUpdated') {
+        this.loadAndRender();
+      }
+    });
   },
 
   /**

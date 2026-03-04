@@ -1,5 +1,5 @@
 /**
- * Background Service Worker for Flow Story
+ * Background Service Worker for AI Story
  */
 
 // Open side panel when extension icon is clicked
@@ -12,7 +12,6 @@ chrome.sidePanel.setPanelBehavior({ openPanelOnActionClick: true });
 
 // Initialize default settings on first install
 chrome.runtime.onInstalled.addListener(async (details) => {
-  // Only set defaults if they don't exist to avoid affecting old data
   const result = await chrome.storage.local.get([
     'autoScan', 'notifications', 'products', 'uploadHistory', 
     'productPresets', 'productCategories', 'nextPasteIndex'
@@ -31,33 +30,47 @@ chrome.runtime.onInstalled.addListener(async (details) => {
     await chrome.storage.local.set(defaults);
   }
 
-  if (details.reason === 'install') {
-    console.log('AI Story installed');
+  createContextMenus();
+
+  if (details.reason === 'install' || details.reason === 'update') {
+    injectContentScriptsToAllTabs();
   }
+});
 
-  // Create Context Menu
+/**
+ * Create Context Menus for 5 Scenes
+ */
+function createContextMenus() {
   chrome.contextMenus.removeAll(() => {
-    chrome.contextMenus.create({
-      id: 'pasteImagePrompt',
-      title: 'Paste Image Prompt (#1)',
-      contexts: ['editable']
-    });
+    // Generate menu for 5 scenes
+    for (let i = 1; i <= 5; i++) {
+      chrome.contextMenus.create({
+        id: `s${i}_img`,
+        title: `S${i}: Img`,
+        contexts: ['editable']
+      });
+      chrome.contextMenus.create({
+        id: `s${i}_vdo`,
+        title: `S${i}: Vdo`,
+        contexts: ['editable']
+      });
+      // Add small separator between scenes
+      chrome.contextMenus.create({
+        id: `sep_${i}`,
+        type: 'separator',
+        contexts: ['editable']
+      });
+    }
 
     chrome.contextMenus.create({
-      id: 'pasteVideoPrompt',
-      title: 'Paste Video Prompt (#1)',
-      contexts: ['editable']
-    });
-
-    chrome.contextMenus.create({
-      id: 'menuSeparator',
-      type: 'separator',
+      id: 'nextSet',
+      title: 'Next Set (+5 Scenes)',
       contexts: ['all']
     });
 
     chrome.contextMenus.create({
-      id: 'nextScene',
-      title: 'Next Scene (+1)',
+      id: 'deleteCurrentFive',
+      title: '🔥 Delete these 5 and Shift',
       contexts: ['all']
     });
 
@@ -69,12 +82,7 @@ chrome.runtime.onInstalled.addListener(async (details) => {
     
     updateContextMenuTitle();
   });
-
-  // Re-inject content scripts to all tabs after install/update
-  if (details.reason === 'install' || details.reason === 'update') {
-    injectContentScriptsToAllTabs();
-  }
-});
+}
 
 // Handle Context Menu Clicks
 chrome.contextMenus.onClicked.addListener(async (info, tab) => {
@@ -83,18 +91,56 @@ chrome.contextMenus.onClicked.addListener(async (info, tab) => {
   let index = result.nextPasteIndex || 0;
   const chronologicalData = [...data].reverse();
 
-  if (info.menuItemId === 'pasteImagePrompt' || info.menuItemId === 'pasteVideoPrompt') {
-    if (chronologicalData.length > 0) {
-      const safeIndex = index % chronologicalData.length;
-      const item = chronologicalData[safeIndex];
-      const text = info.menuItemId === 'pasteImagePrompt' ? item.image_prompt : item.video_prompt;
+  // Handle Scene Pasting
+  if (info.menuItemId.startsWith('s')) {
+    const match = info.menuItemId.match(/s(\d+)_(img|vdo)/);
+    if (match && chronologicalData.length > 0) {
+      const sceneOffset = parseInt(match[1]) - 1;
+      const type = match[2];
+      const targetIdx = (index + sceneOffset) % chronologicalData.length;
+      
+      const item = chronologicalData[targetIdx];
+      const text = type === 'img' ? item.image_prompt : item.video_prompt;
       chrome.tabs.sendMessage(tab.id, { action: 'insertText', text: text });
     }
-  } else if (info.menuItemId === 'nextScene') {
-    const nextIndex = (index + 1) % (chronologicalData.length || 1);
+  } 
+  // Next Set
+  else if (info.menuItemId === 'nextSet') {
+    const nextIndex = (index + 5) % (chronologicalData.length || 1);
     await chrome.storage.local.set({ nextPasteIndex: nextIndex });
     updateContextMenuTitle(nextIndex, chronologicalData.length);
-  } else if (info.menuItemId === 'resetPasteIndex') {
+  }
+  // Delete current 5 and Shift
+  else if (info.menuItemId === 'deleteCurrentFive') {
+    if (chronologicalData.length === 0) return;
+    
+    // We need to delete from the ORIGINAL data (which is newest first)
+    // chronologicalData is [Oldest...Newest]
+    // index points to the starting point in chronologicalData
+    
+    const countToDelete = Math.min(5, chronologicalData.length);
+    // Find IDs or items to delete
+    const itemsToDelete = chronologicalData.slice(index, index + countToDelete);
+    
+    // Filter out these items from the original data
+    const newData = data.filter(item => !itemsToDelete.includes(item));
+    
+    // If we deleted from the end and looped, index might be high
+    let nextIdx = index;
+    if (nextIdx >= newData.length) nextIdx = 0;
+
+    await chrome.storage.local.set({ 
+      ollamaCleanedData: newData,
+      nextPasteIndex: nextIdx 
+    });
+    
+    updateContextMenuTitle(nextIdx, newData.length);
+    
+    // Notify sidebar if open
+    chrome.runtime.sendMessage({ action: 'dataUpdated' });
+  }
+  // Reset
+  else if (info.menuItemId === 'resetPasteIndex') {
     await chrome.storage.local.set({ nextPasteIndex: 0 });
     updateContextMenuTitle(0, chronologicalData.length);
   }
@@ -113,14 +159,15 @@ async function updateContextMenuTitle(nextIdx = -1, total = -1) {
     displayTotal = (result.ollamaCleanedData || []).length;
   }
 
-  const sceneNum = displayTotal > 0 ? (displayIdx % displayTotal) + 1 : 1;
-  const suffix = displayTotal > 0 ? ` (#${sceneNum} / ${displayTotal})` : ' (No Data)';
-
-  try {
-    chrome.contextMenus.update('pasteImagePrompt', { title: 'Paste Image Prompt' + suffix });
-    chrome.contextMenus.update('pasteVideoPrompt', { title: 'Paste Video Prompt' + suffix });
-  } catch (e) {
-    // Menu might not exist yet
+  // Update the 5 scene labels to show which absolute scene numbers they are
+  for (let i = 1; i <= 5; i++) {
+    const absScene = displayTotal > 0 ? ((displayIdx + i - 1) % displayTotal) + 1 : i;
+    const suffix = displayTotal > 0 ? ` (#${absScene})` : ' (-)';
+    
+    try {
+      chrome.contextMenus.update(`s${i}_img`, { title: `S${i}: Img${suffix}` });
+      chrome.contextMenus.update(`s${i}_vdo`, { title: `S${i}: Vdo${suffix}` });
+    } catch (e) {}
   }
 }
 
@@ -131,23 +178,13 @@ async function injectContentScript(tabId) {
   try {
     const tab = await chrome.tabs.get(tabId);
     if (!tab.url) return false;
-
-    // Only inject to non-chrome pages
     if (tab.url.startsWith('chrome://') || tab.url.startsWith('edge://')) return false;
 
-    // Check if content script is already loaded
-    try {
-      const response = await chrome.tabs.sendMessage(tabId, { action: 'ping' });
-      if (response && response.status === 'ok') return true;
-    } catch (e) {}
-
-    // Inject the generic content script
     await chrome.scripting.executeScript({
       target: { tabId: tabId },
       files: ['content/general.js']
     });
 
-    // If TikTok, also inject TikTok specific
     if (tab.url.includes('tiktok.com')) {
       await chrome.scripting.executeScript({
         target: { tabId: tabId },
@@ -158,16 +195,12 @@ async function injectContentScript(tabId) {
         files: ['css/content.css']
       });
     }
-
     return true;
   } catch (error) {
     return false;
   }
 }
 
-/**
- * Inject content scripts to all relevant tabs
- */
 async function injectContentScriptsToAllTabs() {
   try {
     const tabs = await chrome.tabs.query({});
@@ -177,54 +210,14 @@ async function injectContentScriptsToAllTabs() {
   } catch (error) {}
 }
 
-// Listen for messages from content scripts and sidebar
+// Listen for messages
 chrome.runtime.onMessage.addListener((message, sender, sendResponse) => {
   if (message.action === 'downloadFile') {
-    chrome.downloads.download({
-      url: message.url,
-      filename: message.filename
-    }, (downloadId) => {
-      sendResponse({ success: true, downloadId });
-    });
+    chrome.downloads.download({ url: message.url, filename: message.filename }, (id) => sendResponse({ success: true, id }));
     return true;
   }
-
-  // Handle request to ensure content script is loaded
   if (message.action === 'ensureContentScript') {
-    injectContentScript(message.tabId)
-      .then(result => sendResponse({ success: result }))
-      .catch(err => sendResponse({ success: false, error: err.message }));
+    injectContentScript(message.tabId).then(res => sendResponse({ success: res }));
     return true;
-  }
-
-  // Content script ready notification
-  if (message.action === 'contentScriptReady') {
-    console.log('[Background] Content script ready in tab:', sender.tab?.id);
-    sendResponse({ acknowledged: true });
-    return true;
-  }
-});
-
-// Listen for tab updates to re-inject if needed
-chrome.tabs.onUpdated.addListener((tabId, changeInfo, tab) => {
-  // Only inject when page is fully loaded and is a TikTok page
-  if (changeInfo.status === 'complete' && tab.url && tab.url.includes('tiktok.com')) {
-    // Small delay to ensure page is ready
-    setTimeout(() => {
-      injectContentScript(tabId);
-    }, 500);
-  }
-});
-
-// Listen for tab activation (when user switches to a tab)
-chrome.tabs.onActivated.addListener(async (activeInfo) => {
-  try {
-    const tab = await chrome.tabs.get(activeInfo.tabId);
-    if (tab.url && tab.url.includes('tiktok.com')) {
-      // Check and inject if needed
-      injectContentScript(activeInfo.tabId);
-    }
-  } catch (error) {
-    // Tab might not exist
   }
 });
