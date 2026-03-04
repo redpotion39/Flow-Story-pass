@@ -37,36 +37,33 @@ chrome.runtime.onInstalled.addListener(async (details) => {
 
   // Create Context Menu
   chrome.contextMenus.removeAll(() => {
-    // Parent Menu showing current scene
-    chrome.contextMenus.create({
-      id: 'aiStoryParent',
-      title: 'AI Story: Scene #1',
-      contexts: ['editable', 'all']
-    });
-
     chrome.contextMenus.create({
       id: 'pasteImagePrompt',
-      parentId: 'aiStoryParent',
-      title: 'Paste Image Prompt',
+      title: 'Paste Image Prompt (#1)',
       contexts: ['editable']
     });
 
     chrome.contextMenus.create({
       id: 'pasteVideoPrompt',
-      parentId: 'aiStoryParent',
-      title: 'Paste Video Prompt',
+      title: 'Paste Video Prompt (#1)',
       contexts: ['editable']
     });
 
     chrome.contextMenus.create({
+      id: 'menuSeparator',
+      type: 'separator',
+      contexts: ['all']
+    });
+
+    chrome.contextMenus.create({
       id: 'nextScene',
-      title: 'AI Story: Next Scene (+1)',
+      title: 'Next Scene (+1)',
       contexts: ['all']
     });
 
     chrome.contextMenus.create({
       id: 'resetPasteIndex',
-      title: 'AI Story: Reset to Scene #1',
+      title: 'Reset to Scene #1',
       contexts: ['all']
     });
     
@@ -116,12 +113,12 @@ async function updateContextMenuTitle(nextIdx = -1, total = -1) {
     displayTotal = (result.ollamaCleanedData || []).length;
   }
 
-  const sceneTitle = displayTotal > 0 
-    ? `AI Story: Scene #${(displayIdx % displayTotal) + 1} / ${displayTotal}`
-    : 'AI Story: No Prompts';
+  const sceneNum = displayTotal > 0 ? (displayIdx % displayTotal) + 1 : 1;
+  const suffix = displayTotal > 0 ? ` (#${sceneNum} / ${displayTotal})` : ' (No Data)';
 
   try {
-    chrome.contextMenus.update('aiStoryParent', { title: sceneTitle });
+    chrome.contextMenus.update('pasteImagePrompt', { title: 'Paste Image Prompt' + suffix });
+    chrome.contextMenus.update('pasteVideoPrompt', { title: 'Paste Video Prompt' + suffix });
   } catch (e) {
     // Menu might not exist yet
   }
