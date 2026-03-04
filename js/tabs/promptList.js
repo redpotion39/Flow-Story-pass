@@ -24,7 +24,8 @@ const PromptList = {
       list: document.getElementById('promptCopyList'),
       refreshBtn: document.getElementById('promptListRefreshBtn'),
       clearAllBtn: document.getElementById('promptListClearAllBtn'),
-      exportBtn: document.getElementById('promptListExportBtn')
+      exportBtn: document.getElementById('promptListExportBtn'),
+      importBtn: document.getElementById('promptListImportBtn')
     };
   },
 
@@ -43,6 +44,10 @@ const PromptList = {
 
     if (this.elements.exportBtn) {
       this.elements.exportBtn.addEventListener('click', () => this.exportToCSV());
+    }
+
+    if (this.elements.importBtn) {
+      this.elements.importBtn.addEventListener('click', () => this.handleImport());
     }
 
     if (this.elements.clearAllBtn) {
@@ -235,6 +240,133 @@ const PromptList = {
     document.body.removeChild(link);
     
     showToast('ส่งออก CSV เรียบร้อย', 'success');
+  },
+
+  /**
+   * Handle CSV Import
+   */
+  handleImport() {
+    const input = document.createElement('input');
+    input.type = 'file';
+    input.accept = '.csv';
+    input.onchange = (e) => {
+      const file = e.target.files[0];
+      if (file) {
+        this.processImportFile(file);
+      }
+    };
+    input.click();
+  },
+
+  /**
+   * Process the imported CSV file
+   */
+  async processImportFile(file) {
+    const reader = new FileReader();
+    reader.onload = async (e) => {
+      try {
+        const text = e.target.result;
+        const rows = this.parseCSV(text);
+        
+        if (rows.length === 0) {
+          throw new Error('ไม่พบข้อมูลในไฟล์ CSV หรือรูปแบบไม่ถูกต้อง');
+        }
+
+        const result = await chrome.storage.local.get('ollamaCleanedData');
+        let currentData = result.ollamaCleanedData || [];
+        
+        // CSV headers are usually image_prompt,video_prompt
+        // If first row is header, skip it
+        let startIdx = 0;
+        const firstRow = rows[0];
+        if (firstRow && (firstRow[0] === 'image_prompt' || firstRow[1] === 'video_prompt')) {
+          startIdx = 1;
+        }
+
+        const newItems = [];
+        for (let i = startIdx; i < rows.length; i++) {
+          const row = rows[i];
+          if (row.length >= 2) {
+            newItems.push({
+              image_prompt: row[0].trim(),
+              video_prompt: row[1].trim(),
+              timestamp: Date.now() + i
+            });
+          }
+        }
+
+        if (newItems.length === 0) {
+          throw new Error('ไม่พบข้อมูลที่ถูกต้องในไฟล์');
+        }
+
+        // Prepending newest to maintain "CleanData" consistency
+        await chrome.storage.local.set({ ollamaCleanedData: [...newItems.reverse(), ...currentData] });
+        
+        await this.loadAndRender();
+        
+        if (typeof OllamaCleaner !== 'undefined') {
+          await OllamaCleaner.loadData();
+          OllamaCleaner.renderData();
+        }
+
+        showToast(`นำเข้าข้อมูลเรียบร้อย ${newItems.length} รายการ`, 'success');
+      } catch (err) {
+        console.error('Import error:', err);
+        showToast(err.message, 'error');
+      }
+    };
+    reader.readAsText(file);
+  },
+
+  /**
+   * Basic CSV Parser (handles quotes and commas)
+   */
+  parseCSV(text) {
+    const rows = [];
+    let currentRow = [];
+    let currentField = '';
+    let inQuotes = false;
+
+    // Remove BOM if present
+    text = text.replace(/^\ufeff/, '');
+
+    for (let i = 0; i < text.length; i++) {
+      const char = text[i];
+      const nextChar = text[i + 1];
+
+      if (char === '"') {
+        if (inQuotes && nextChar === '"') {
+          // Escaped quote
+          currentField += '"';
+          i++;
+        } else {
+          // Toggle quote state
+          inQuotes = !inQuotes;
+        }
+      } else if (char === ',' && !inQuotes) {
+        // Field separator
+        currentRow.push(currentField);
+        currentField = '';
+      } else if ((char === '\n' || char === '\r') && !inQuotes) {
+        // Row separator
+        if (char === '\r' && nextChar === '\n') i++;
+        if (currentField !== '' || currentRow.length > 0) {
+          currentRow.push(currentField);
+          rows.push(currentRow);
+          currentRow = [];
+          currentField = '';
+        }
+      } else {
+        currentField += char;
+      }
+    }
+
+    if (currentField !== '' || currentRow.length > 0) {
+      currentRow.push(currentField);
+      rows.push(currentRow);
+    }
+
+    return rows;
   },
 
   /**
