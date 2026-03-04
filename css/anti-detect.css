@@ -1,0 +1,238 @@
+/* ============================= */
+/* Anti-Detection Dashboard      */
+/* Flow X v6.0 - Detection Guard */
+/* ============================= */
+
+.anti-detect-panel {
+  background-color: var(--color-surface);
+  border-radius: var(--radius-lg);
+  padding: var(--spacing-lg);
+  border: 1px solid var(--color-border);
+  box-shadow: var(--shadow-card);
+  position: relative;
+  overflow: hidden;
+}
+
+.anti-detect-panel::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  height: 3px;
+  background: linear-gradient(90deg, var(--color-success), var(--color-info), var(--color-success));
+  background-size: 200% 100%;
+  animation: detectScan 3s linear infinite;
+}
+
+@keyframes detectScan {
+  0% { background-position: 0% 0%; }
+  100% { background-position: 200% 0%; }
+}
+
+.anti-detect-panel .section-title {
+  font-size: var(--font-size-md);
+  font-weight: 600;
+  color: var(--color-text-primary);
+  margin-bottom: var(--spacing-lg);
+  display: flex;
+  align-items: center;
+  gap: var(--spacing-sm);
+}
+
+.anti-detect-panel .section-title svg {
+  color: var(--color-success);
+}
+
+/* Detection Score */
+.detection-score {
+  width: 96px;
+  height: 96px;
+  border-radius: 50%;
+  background: conic-gradient(
+    var(--color-success) 0deg,
+    var(--color-success) calc(var(--score, 85) * 3.6deg),
+    var(--color-border-light) calc(var(--score, 85) * 3.6deg)
+  );
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  margin: 0 auto var(--spacing-lg);
+  position: relative;
+}
+
+.detection-score::after {
+  content: attr(data-score);
+  width: 76px;
+  height: 76px;
+  background: var(--color-surface);
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: var(--font-size-xl);
+  font-weight: 700;
+  color: var(--color-text-primary);
+}
+
+.detection-score.score-safe::after { color: var(--color-success); }
+.detection-score.score-warning::after { color: var(--color-warning); }
+.detection-score.score-danger::after { color: var(--color-error); }
+
+/* Status Indicators */
+.detection-status {
+  display: flex;
+  gap: var(--spacing-sm);
+  margin-bottom: var(--spacing-lg);
+  flex-wrap: wrap;
+}
+
+.detection-status-item {
+  flex: 1;
+  min-width: 100px;
+  display: flex;
+  align-items: center;
+  gap: var(--spacing-xs);
+  padding: var(--spacing-sm) var(--spacing-md);
+  border-radius: var(--radius-md);
+  background: var(--color-bg-inset);
+  border: 1px solid var(--color-border);
+  font-size: var(--font-size-xs);
+  color: var(--color-text-secondary);
+  transition: all var(--transition-fast);
+}
+
+.detection-status-item .status-dot {
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  flex-shrink: 0;
+}
+
+.detection-status-item .status-dot.green { background: var(--color-success); box-shadow: 0 0 6px rgba(76, 175, 80, 0.4); }
+.detection-status-item .status-dot.yellow { background: var(--color-warning); box-shadow: 0 0 6px rgba(255, 152, 0, 0.4); }
+.detection-status-item .status-dot.red { background: var(--color-error); box-shadow: 0 0 6px rgba(244, 67, 54, 0.4); }
+
+/* Fingerprint Cards */
+.fingerprint-card {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: var(--spacing-md);
+  background: var(--color-bg-inset);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-md);
+  margin-bottom: var(--spacing-sm);
+  transition: border-color var(--transition-fast);
+}
+
+.fingerprint-card:hover {
+  border-color: var(--color-primary-light);
+}
+
+.fingerprint-card:last-child {
+  margin-bottom: 0;
+}
+
+.fingerprint-card-label {
+  font-size: var(--font-size-sm);
+  font-weight: 500;
+  color: var(--color-text-primary);
+}
+
+.fingerprint-card-value {
+  font-size: var(--font-size-xs);
+  color: var(--color-text-hint);
+  font-family: monospace;
+  max-width: 180px;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.fingerprint-card-badge {
+  font-size: 10px;
+  padding: 2px 8px;
+  border-radius: var(--radius-full);
+  font-weight: 600;
+  text-transform: uppercase;
+}
+
+.fingerprint-card-badge.spoofed { background: rgba(76, 175, 80, 0.1); color: var(--color-success); }
+.fingerprint-card-badge.native { background: rgba(158, 158, 158, 0.1); color: var(--color-text-hint); }
+
+/* Spoof Toggle */
+.spoof-toggle {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: var(--spacing-sm) var(--spacing-md);
+  background: var(--color-surface);
+  border: 1px solid var(--color-border-light);
+  border-radius: var(--radius-sm);
+  margin-bottom: var(--spacing-xs);
+  cursor: pointer;
+  transition: all var(--transition-fast);
+}
+
+.spoof-toggle:hover {
+  background: var(--color-bg-inset);
+  border-color: var(--color-border);
+}
+
+.spoof-toggle-label {
+  font-size: var(--font-size-sm);
+  color: var(--color-text-primary);
+}
+
+.spoof-toggle-desc {
+  font-size: var(--font-size-xs);
+  color: var(--color-text-hint);
+  margin-top: 2px;
+}
+
+/* Detection Log */
+.detection-log {
+  max-height: 200px;
+  overflow-y: auto;
+  background: #1a1a2e;
+  border-radius: var(--radius-md);
+  padding: var(--spacing-md);
+  font-family: 'Courier New', monospace;
+  font-size: var(--font-size-xs);
+  line-height: 1.8;
+  margin-top: var(--spacing-md);
+  border: 1px solid rgba(255, 255, 255, 0.06);
+}
+
+.detection-log-entry {
+  display: flex;
+  gap: var(--spacing-sm);
+  color: rgba(255, 255, 255, 0.6);
+}
+
+.detection-log-entry .log-time {
+  color: rgba(255, 255, 255, 0.3);
+  flex-shrink: 0;
+}
+
+.detection-log-entry.log-pass .log-msg { color: #4CAF50; }
+.detection-log-entry.log-warn .log-msg { color: #FF9800; }
+.detection-log-entry.log-fail .log-msg { color: #F44336; }
+
+/* Responsive */
+@media (max-width: 420px) {
+  .detection-status {
+    flex-direction: column;
+  }
+
+  .fingerprint-card {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: var(--spacing-xs);
+  }
+
+  .fingerprint-card-value {
+    max-width: 100%;
+  }
+}

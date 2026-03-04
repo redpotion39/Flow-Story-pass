@@ -1,0 +1,195 @@
+{
+  "version": "6.0.2",
+  "lastUpdated": "2025-12-15",
+  "description": "Selector configuration for Radix UI elements across environments",
+  "environments": {
+    "production": {
+      "modeButton": {
+        "selector": "button[data-radix-trigger='mode-select']",
+        "icon": "aspect_ratio",
+        "fallback": "[data-radix-collection-item][data-value='mode']"
+      },
+      "videoTab": {
+        "selector": "[data-radix-collection-item][data-value='video']",
+        "icon": "smart_display",
+        "fallback": "button[role='tab'][data-state='active'][data-value='video']"
+      },
+      "imageTab": {
+        "selector": "[data-radix-collection-item][data-value='image']",
+        "icon": "create",
+        "fallback": "button[role='tab'][data-value='image']"
+      },
+      "promptInput": {
+        "selector": "textarea[data-radix-input='prompt-field']",
+        "fallback": "div[role='tabpanel'][data-state='active'] textarea"
+      },
+      "createButton": {
+        "selector": "button[data-radix-trigger='create-action']",
+        "icon": "movie_creation",
+        "fallback": "button[type='submit'][data-radix-action]"
+      },
+      "outputGrid": {
+        "selector": "div[role='tabpanel'][data-state='active'] .output-grid",
+        "fallback": "[data-radix-scroll-area] .grid-container"
+      },
+      "downloadButton": {
+        "selector": "button[data-radix-action='download']",
+        "icon": "movie_creation",
+        "fallback": "a[download][data-radix-action]"
+      },
+      "settingsMenu": {
+        "selector": "[data-radix-menu-content][data-side='bottom']",
+        "fallback": "[data-radix-dropdown-menu-content]"
+      },
+      "aspectSelector": {
+        "selector": "button[data-radix-trigger='aspect-select']",
+        "icon": "aspect_ratio",
+        "fallback": "[data-radix-select-trigger][aria-label='Aspect Ratio']"
+      },
+      "qualitySlider": {
+        "selector": "input[data-radix-slider='quality']",
+        "fallback": "[data-radix-slider-thumb][aria-label='Quality']"
+      },
+      "historyPanel": {
+        "selector": "div[data-radix-scroll-area='history']",
+        "fallback": "[data-radix-scroll-area-viewport].history-viewport"
+      },
+      "previewArea": {
+        "selector": "canvas[data-radix-preview='main']",
+        "fallback": "div[data-radix-aspect-ratio] canvas"
+      }
+    },
+    "staging": {
+      "modeButton": {
+        "selector": "button[data-radix-trigger='mode-select-v2']",
+        "icon": "aspect_ratio",
+        "fallback": "[data-test-id='mode-trigger']"
+      },
+      "videoTab": {
+        "selector": "[data-test-id='video-tab']",
+        "icon": "smart_display",
+        "fallback": "button[role='tab'][data-test-value='video']"
+      },
+      "imageTab": {
+        "selector": "[data-test-id='image-tab']",
+        "icon": "create",
+        "fallback": "button[role='tab'][data-test-value='image']"
+      },
+      "promptInput": {
+        "selector": "textarea[data-test-id='prompt-input']",
+        "fallback": "[data-test-id='prompt-container'] textarea"
+      },
+      "createButton": {
+        "selector": "button[data-test-id='create-btn']",
+        "icon": "movie_creation",
+        "fallback": "button[type='submit'][data-test-action='create']"
+      },
+      "outputGrid": {
+        "selector": "[data-test-id='output-grid']",
+        "fallback": "[data-test-id='results-container'] .grid"
+      },
+      "downloadButton": {
+        "selector": "button[data-test-id='download-btn']",
+        "icon": "movie_creation",
+        "fallback": "a[data-test-action='download']"
+      },
+      "settingsMenu": {
+        "selector": "[data-test-id='settings-menu']",
+        "fallback": "[data-test-id='dropdown-settings']"
+      },
+      "aspectSelector": {
+        "selector": "[data-test-id='aspect-selector']",
+        "icon": "aspect_ratio",
+        "fallback": "button[data-test-action='aspect']"
+      },
+      "qualitySlider": {
+        "selector": "input[data-test-id='quality-slider']",
+        "fallback": "[data-test-id='quality-control'] input"
+      },
+      "historyPanel": {
+        "selector": "[data-test-id='history-panel']",
+        "fallback": "[data-test-id='history-scroll']"
+      },
+      "previewArea": {
+        "selector": "canvas[data-test-id='preview-canvas']",
+        "fallback": "[data-test-id='preview-container'] canvas"
+      }
+    },
+    "development": {
+      "modeButton": {
+        "selector": "#dev-root button.mode-trigger",
+        "icon": "aspect_ratio",
+        "fallback": "#dev-mode-btn"
+      },
+      "videoTab": {
+        "selector": "#dev-root .tab-video",
+        "icon": "smart_display",
+        "fallback": "#dev-video-tab"
+      },
+      "imageTab": {
+        "selector": "#dev-root .tab-image",
+        "icon": "create",
+        "fallback": "#dev-image-tab"
+      },
+      "promptInput": {
+        "selector": "#dev-root textarea.prompt-input",
+        "fallback": "#dev-prompt-textarea"
+      },
+      "createButton": {
+        "selector": "#dev-root button.create-btn",
+        "icon": "movie_creation",
+        "fallback": "#dev-create-btn"
+      },
+      "outputGrid": {
+        "selector": "#dev-root .output-grid",
+        "fallback": "#dev-output-container .grid"
+      },
+      "downloadButton": {
+        "selector": "#dev-root button.download-btn",
+        "icon": "movie_creation",
+        "fallback": "#dev-download-btn"
+      },
+      "settingsMenu": {
+        "selector": "#dev-root .settings-dropdown",
+        "fallback": "#dev-settings-menu"
+      },
+      "aspectSelector": {
+        "selector": "#dev-root .aspect-selector",
+        "icon": "aspect_ratio",
+        "fallback": "#dev-aspect-btn"
+      },
+      "qualitySlider": {
+        "selector": "#dev-root input.quality-slider",
+        "fallback": "#dev-quality-input"
+      },
+      "historyPanel": {
+        "selector": "#dev-root .history-panel",
+        "fallback": "#dev-history"
+      },
+      "previewArea": {
+        "selector": "#dev-root canvas.preview",
+        "fallback": "#dev-preview-canvas"
+      }
+    }
+  },
+  "iconMapping": {
+    "modeButton": "aspect_ratio",
+    "videoTab": "smart_display",
+    "imageTab": "create",
+    "createButton": "movie_creation",
+    "downloadButton": "movie_creation",
+    "settingsMenu": "tune",
+    "aspectSelector": "aspect_ratio",
+    "refresh": "autorenew",
+    "gallery": "grid_view",
+    "expand": "open_in_full"
+  },
+  "selectorPriority": [
+    "data-radix-trigger",
+    "data-radix-collection-item",
+    "data-radix-action",
+    "role",
+    "data-state",
+    "class"
+  ]
+}

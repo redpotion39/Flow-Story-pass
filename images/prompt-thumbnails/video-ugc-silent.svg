@@ -1,0 +1,49 @@
+<svg width="320" height="180" viewBox="0 0 320 180" xmlns="http://www.w3.org/2000/svg">
+  <defs>
+    <linearGradient id="vbg-silent" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" style="stop-color:#667eea"/>
+      <stop offset="100%" style="stop-color:#764ba2"/>
+    </linearGradient>
+  </defs>
+  <rect width="320" height="180" fill="url(#vbg-silent)"/>
+
+  <!-- Video frame -->
+  <rect x="60" y="25" width="200" height="115" rx="10" fill="rgba(0,0,0,0.2)"/>
+
+  <!-- Person silhouette holding product -->
+  <ellipse cx="160" cy="55" rx="22" ry="25" fill="rgba(255,255,255,0.9)"/>
+  <rect x="135" y="75" width="50" height="50" rx="5" fill="rgba(255,255,255,0.8)"/>
+
+  <!-- Product in hand -->
+  <rect x="185" y="70" width="30" height="40" rx="4" fill="white"/>
+  <rect x="188" y="65" width="24" height="10" rx="3" fill="#667eea"/>
+
+  <!-- Thumbs up gesture -->
+  <ellipse cx="205" cy="100" rx="8" ry="12" fill="rgba(255,255,255,0.9)" transform="rotate(-20 205 100)"/>
+  <rect x="200" y="108" width="6" height="15" rx="2" fill="rgba(255,255,255,0.9)"/>
+
+  <!-- Mute/Silent icon -->
+  <circle cx="260" cy="45" r="18" fill="rgba(255,255,255,0.95)"/>
+  <rect x="252" y="38" width="8" height="14" rx="2" fill="#667eea"/>
+  <path d="M260 38 L268 32 L268 52 L260 46 Z" fill="#667eea"/>
+  <!-- X mark for mute -->
+  <line x1="270" y1="38" x2="280" y2="52" stroke="#e74c3c" stroke-width="3" stroke-linecap="round"/>
+  <line x1="280" y1="38" x2="270" y2="52" stroke="#e74c3c" stroke-width="3" stroke-linecap="round"/>
+
+  <!-- Expression bubbles (no text, just symbols) -->
+  <circle cx="85" cy="50" r="12" fill="rgba(255,255,255,0.8)"/>
+  <text x="85" y="55" font-size="14" text-anchor="middle">👍</text>
+
+  <circle cx="75" cy="80" r="10" fill="rgba(255,255,255,0.8)"/>
+  <text x="75" y="84" font-size="10" text-anchor="middle">✨</text>
+
+  <!-- Play button -->
+  <circle cx="160" cy="85" r="18" fill="rgba(255,255,255,0.9)"/>
+  <polygon points="155,77 155,93 170,85" fill="#667eea"/>
+
+  <!-- Timer -->
+  <rect x="215" y="120" width="35" height="15" rx="3" fill="rgba(0,0,0,0.4)"/>
+  <text x="232" y="131" font-family="Arial" font-size="9" fill="white" text-anchor="middle">0:08</text>
+
+  <text x="160" y="168" font-family="Arial, sans-serif" font-size="11" fill="white" text-anchor="middle" font-weight="500">Video Silent Review</text>
+</svg>

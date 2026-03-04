@@ -1,0 +1,29 @@
+/* TikTok Unlocked - Content Styles */
+/* Styles injected into TikTok pages */
+
+/* Highlight scanned products */
+.tiktok-unlocked-highlight {
+  outline: 3px solid #9B59B6 !important;
+  outline-offset: 2px;
+  border-radius: 8px;
+  transition: outline-color 0.3s ease;
+}
+
+.tiktok-unlocked-highlight:hover {
+  outline-color: #8E44AD !important;
+}
+
+/* Product badge */
+.tiktok-unlocked-badge {
+  position: absolute;
+  top: 8px;
+  right: 8px;
+  background: linear-gradient(135deg, #9B59B6 0%, #8E44AD 100%);
+  color: white;
+  font-size: 11px;
+  font-weight: 600;
+  padding: 4px 8px;
+  border-radius: 4px;
+  z-index: 1000;
+  box-shadow: 0 2px 8px rgba(155, 89, 182, 0.4);
+}

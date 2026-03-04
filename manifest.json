@@ -1,0 +1,56 @@
+{
+  "manifest_version": 3,
+  "name": "Flow Story",
+  "version": "2.0",
+  "version_name": "2.0",
+  "description": "AI Content Generator + TikTok Uploader - All in One",
+  "permissions": [
+    "storage",
+    "unlimitedStorage",
+    "activeTab",
+    "sidePanel",
+    "downloads",
+    "scripting",
+    "tabs",
+    "debugger"
+  ],
+  "host_permissions": [
+    "<all_urls>",
+    "https://*.tiktok.com/*"
+  ],
+  "background": {
+    "service_worker": "background.js"
+  },
+  "side_panel": {
+    "default_path": "html/sidebar.html"
+  },
+  "content_scripts": [
+    {
+      "matches": ["https://*.tiktok.com/*"],
+      "js": ["content/tiktok.js"],
+      "css": ["css/content.css"],
+      "run_at": "document_idle"
+    }
+  ],
+  "action": {
+    "default_icon": {
+      "16": "icons/icon16.png",
+      "32": "icons/icon32.png",
+      "48": "icons/icon48.png",
+      "128": "icons/icon128.png"
+    },
+    "default_title": "Flow Story"
+  },
+  "icons": {
+    "16": "icons/icon16.png",
+    "32": "icons/icon32.png",
+    "48": "icons/icon48.png",
+    "128": "icons/icon128.png"
+  },
+  "web_accessible_resources": [
+    {
+      "resources": ["aiunlocked.jpg"],
+      "matches": ["<all_urls>"]
+    }
+  ]
+}

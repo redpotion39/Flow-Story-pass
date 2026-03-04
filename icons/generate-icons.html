@@ -1,0 +1,86 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <title>Generate Icons</title>
+</head>
+<body>
+  <h1>Flow Story Icons Generator</h1>
+  <p>Right-click each icon and save as PNG</p>
+
+  <div style="display: flex; gap: 20px; flex-wrap: wrap; align-items: end;">
+    <div>
+      <p>16x16</p>
+      <canvas id="icon16" width="16" height="16"></canvas>
+    </div>
+    <div>
+      <p>32x32</p>
+      <canvas id="icon32" width="32" height="32"></canvas>
+    </div>
+    <div>
+      <p>48x48</p>
+      <canvas id="icon48" width="48" height="48"></canvas>
+    </div>
+    <div>
+      <p>128x128</p>
+      <canvas id="icon128" width="128" height="128"></canvas>
+    </div>
+  </div>
+
+  <h2>Download Links:</h2>
+  <div id="downloads"></div>
+
+  <script>
+    function drawIcon(canvas) {
+      const ctx = canvas.getContext('2d');
+      const size = canvas.width;
+      const radius = size * 0.1875;
+      const strokeWidth = size * 0.0625;
+      const padding = size * 0.25;
+
+      // Draw rounded rectangle background
+      ctx.fillStyle = '#1877F2';
+      ctx.beginPath();
+      ctx.roundRect(0, 0, size, size, radius);
+      ctx.fill();
+
+      // Draw lines
+      ctx.strokeStyle = 'white';
+      ctx.lineCap = 'round';
+      ctx.lineWidth = strokeWidth;
+
+      // Line 1 (full width)
+      ctx.beginPath();
+      ctx.moveTo(padding, size * 0.3125);
+      ctx.lineTo(size - padding, size * 0.3125);
+      ctx.stroke();
+
+      // Line 2 (3/4 width)
+      ctx.beginPath();
+      ctx.moveTo(padding, size * 0.5);
+      ctx.lineTo(size - padding * 1.5, size * 0.5);
+      ctx.stroke();
+
+      // Line 3 (1/2 width)
+      ctx.beginPath();
+      ctx.moveTo(padding, size * 0.6875);
+      ctx.lineTo(size * 0.5, size * 0.6875);
+      ctx.stroke();
+    }
+
+    // Generate all icons
+    ['icon16', 'icon32', 'icon48', 'icon128'].forEach(id => {
+      const canvas = document.getElementById(id);
+      drawIcon(canvas);
+
+      // Create download link
+      const link = document.createElement('a');
+      link.href = canvas.toDataURL('image/png');
+      link.download = id + '.png';
+      link.textContent = 'Download ' + id + '.png';
+      link.style.display = 'block';
+      link.style.margin = '10px 0';
+      document.getElementById('downloads').appendChild(link);
+    });
+  </script>
+</body>
+</html>

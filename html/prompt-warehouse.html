@@ -1,0 +1,371 @@
+<!DOCTYPE html>
+<html lang="th">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>คลัง Prompt - Flow Story</title>
+  <link rel="stylesheet" href="../css/variables.css">
+  <link rel="stylesheet" href="../css/prompt-warehouse.css">
+</head>
+<body>
+  <div class="prompt-warehouse-container">
+    <!-- Header -->
+    <header class="prompt-header">
+      <div class="header-left">
+        <img src="../icons/icon32.png" alt="Flow Story" class="header-logo">
+        <h1>คลัง Prompt <span class="version-badge">v3.1</span></h1>
+      </div>
+      <div class="header-right">
+        <button id="importDefaultsBtn" class="btn btn-secondary" title="นำเข้า Template เริ่มต้น">
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/>
+            <polyline points="7 10 12 15 17 10"/>
+            <line x1="12" y1="15" x2="12" y2="3"/>
+          </svg>
+          นำเข้า Default
+        </button>
+        <button id="importCustomBtn" class="btn btn-outline" title="นำเข้า Custom Prompts จากระบบเดิม">
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <path d="M16 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/>
+            <circle cx="8.5" cy="7" r="4"/>
+            <line x1="20" y1="8" x2="20" y2="14"/>
+            <line x1="23" y1="11" x2="17" y2="11"/>
+          </svg>
+          นำเข้า Custom
+        </button>
+        <button id="variableGuideBtn" class="btn btn-outline" title="คู่มือตัวแปร">
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <circle cx="12" cy="12" r="10"/>
+            <path d="M9.09 9a3 3 0 0 1 5.83 1c0 2-3 3-3 3"/>
+            <line x1="12" y1="17" x2="12.01" y2="17"/>
+          </svg>
+          คู่มือ
+        </button>
+        <button id="addPromptBtn" class="btn btn-primary" title="เพิ่ม Prompt ใหม่">
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <line x1="12" y1="5" x2="12" y2="19"/>
+            <line x1="5" y1="12" x2="19" y2="12"/>
+          </svg>
+          เพิ่ม Prompt
+        </button>
+      </div>
+    </header>
+
+    <!-- Stats -->
+    <div class="stats-container">
+      <div class="stat-item">
+        <span class="stat-value" id="totalPrompts">0</span>
+        <span class="stat-label">ทั้งหมด</span>
+      </div>
+      <div class="stat-divider"></div>
+      <div class="stat-item stat-image">
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+          <rect x="3" y="3" width="18" height="18" rx="2" ry="2"/>
+          <circle cx="8.5" cy="8.5" r="1.5"/>
+          <polyline points="21 15 16 10 5 21"/>
+        </svg>
+        <span class="stat-value" id="imagePrompts">0</span>
+        <span class="stat-label">ภาพ</span>
+      </div>
+      <div class="stat-divider"></div>
+      <div class="stat-item stat-video">
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+          <polygon points="23 7 16 12 23 17 23 7"/>
+          <rect x="1" y="5" width="15" height="14" rx="2" ry="2"/>
+        </svg>
+        <span class="stat-value" id="videoPrompts">0</span>
+        <span class="stat-label">วิดีโอ</span>
+      </div>
+      <div class="stat-divider"></div>
+      <div class="stat-item stat-story">
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+          <path d="M12 2L2 7l10 5 10-5-10-5z"/>
+          <path d="M2 17l10 5 10-5"/>
+          <path d="M2 12l10 5 10-5"/>
+        </svg>
+        <span class="stat-value" id="storyPrompts">0</span>
+        <span class="stat-label">Story</span>
+      </div>
+    </div>
+
+    <!-- Guide Banner -->
+    <a href="https://aiunlock.co/courses/%E0%B8%84%E0%B8%B9%E0%B9%88%E0%B8%A1%E0%B8%B7%E0%B8%AD-flow-x-unlocked-%E0%B8%95%E0%B8%B1%E0%B8%A7%E0%B8%97%E0%B8%B3%E0%B8%84%E0%B8%A5%E0%B8%B4%E0%B8%9B%E0%B8%9B%E0%B8%B1%E0%B8%81%E0%B8%95%E0%B8%B0%E0%B8%81%E0%B8%A3%E0%B9%89%E0%B8%B2%E0%B8%AD%E0%B8%B1%E0%B8%95%E0%B9%82%E0%B8%99%E0%B8%A1%E0%B8%B1%E0%B8%95%E0%B8%B4/learn" target="_blank" class="guide-banner">
+      <div class="guide-banner-icon">
+        <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+          <path d="M2 3h6a4 4 0 0 1 4 4v14a3 3 0 0 0-3-3H2z"/>
+          <path d="M22 3h-6a4 4 0 0 0-4 4v14a3 3 0 0 1 3-3h7z"/>
+        </svg>
+      </div>
+      <div class="guide-banner-content">
+        <span class="guide-banner-title">คู่มือการใช้งาน Flow Story</span>
+        <span class="guide-banner-subtitle">เรียนรู้วิธีสร้างคลิปปักตะกร้าอัตโนมัติ</span>
+      </div>
+      <div class="guide-banner-arrow">
+        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+          <polyline points="9 18 15 12 9 6"/>
+        </svg>
+      </div>
+    </a>
+
+    <!-- Filter Section -->
+    <section class="filter-section">
+      <div class="filter-tabs" id="filterTabs">
+        <button class="filter-tab" data-type="all">ทั้งหมด</button>
+        <button class="filter-tab active" data-type="image">
+          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <rect x="3" y="3" width="18" height="18" rx="2" ry="2"/>
+            <circle cx="8.5" cy="8.5" r="1.5"/>
+            <polyline points="21 15 16 10 5 21"/>
+          </svg>
+          ภาพ
+        </button>
+        <button class="filter-tab" data-type="video">
+          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <polygon points="23 7 16 12 23 17 23 7"/>
+            <rect x="1" y="5" width="15" height="14" rx="2" ry="2"/>
+          </svg>
+          วิดีโอ
+        </button>
+        <button class="filter-tab" data-type="story">
+          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <path d="M12 2L2 7l10 5 10-5-10-5z"/>
+            <path d="M2 17l10 5 10-5"/>
+            <path d="M2 12l10 5 10-5"/>
+          </svg>
+          Story
+        </button>
+      </div>
+      <div class="search-box">
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+          <circle cx="11" cy="11" r="8"/>
+          <path d="m21 21-4.35-4.35"/>
+        </svg>
+        <input type="text" id="searchInput" placeholder="ค้นหา Prompt...">
+      </div>
+    </section>
+
+    <!-- Prompt Grid -->
+    <section class="prompt-section">
+      <div class="prompt-grid" id="promptGrid">
+        <div class="empty-state" id="emptyState">
+          <svg width="64" height="64" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1">
+            <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/>
+            <polyline points="14 2 14 8 20 8"/>
+            <line x1="12" y1="18" x2="12" y2="12"/>
+            <line x1="9" y1="15" x2="15" y2="15"/>
+          </svg>
+          <p>ยังไม่มี Prompt ในคลัง</p>
+          <p class="empty-hint">กด "นำเข้า Default" เพื่อเพิ่ม Template เริ่มต้น หรือกด "เพิ่ม Prompt" เพื่อสร้างใหม่</p>
+        </div>
+      </div>
+    </section>
+  </div>
+
+  <!-- Add/Edit Prompt Modal -->
+  <div class="modal-overlay" id="promptModal" hidden style="background-color: rgba(0,0,0,0.7) !important;">
+    <div class="modal modal-lg">
+      <div class="modal-header">
+        <h3 id="promptModalTitle">เพิ่ม Prompt</h3>
+        <button class="close-btn" id="closePromptModal">&times;</button>
+      </div>
+      <div class="modal-body">
+        <!-- Row 1: ชื่อ, ชนิด, หมวดหมู่ อยู่แถวเดียวกัน -->
+        <div class="form-row three-cols">
+          <div class="form-group form-group-name">
+            <label for="promptName">ชื่อ Prompt <span class="required">*</span></label>
+            <input type="text" id="promptName" placeholder="เช่น UGC รีวิวสินค้า" class="form-control">
+          </div>
+          <div class="form-group form-group-type">
+            <label for="promptType">ชนิด <span class="required">*</span></label>
+            <div class="radio-group">
+              <label class="radio-label">
+                <input type="radio" name="promptType" value="image" checked>
+                <span>ภาพ</span>
+              </label>
+              <label class="radio-label">
+                <input type="radio" name="promptType" value="video">
+                <span>วิดีโอ</span>
+              </label>
+            </div>
+          </div>
+          <div class="form-group form-group-category">
+            <label for="promptCategory">หมวดหมู่</label>
+            <div class="category-select-wrapper">
+              <select id="promptCategory" class="form-control">
+                <option value="">อื่นๆ</option>
+              </select>
+              <button type="button" class="btn btn-icon" id="manageCategoriesBtn" title="จัดการหมวดหมู่">
+                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                  <circle cx="12" cy="12" r="3"/>
+                  <path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1 0 2.83 2 2 0 0 1-2.83 0l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-2 2 2 2 0 0 1-2-2v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83 0 2 2 0 0 1 0-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1-2-2 2 2 0 0 1 2-2h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 0-2.83 2 2 0 0 1 2.83 0l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 2-2 2 2 0 0 1 2 2v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 0 2 2 0 0 1 0 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 2 2 2 2 0 0 1-2 2h-.09a1.65 1.65 0 0 0-1.51 1z"/>
+                </svg>
+              </button>
+            </div>
+          </div>
+        </div>
+
+        <div class="form-group">
+          <label for="promptDescription">คำอธิบายสั้น</label>
+          <input type="text" id="promptDescription" placeholder="เช่น สร้างภาพคนถือสินค้าแบบ UGC" class="form-control">
+        </div>
+
+        <!-- Thumbnail: แสดงรูปเดียว กดที่รูปเพื่อเปลี่ยน -->
+        <div class="form-group">
+          <label>Thumbnail <span class="required">*</span></label>
+          <div class="thumbnail-single" id="thumbnailUpload">
+            <input type="file" id="thumbnailInput" accept="image/*" hidden>
+            <div class="thumbnail-box" id="thumbnailBox">
+              <img id="thumbnailImage" src="" alt="Thumbnail">
+              <div class="thumbnail-placeholder" id="thumbnailPlaceholder">
+                <svg width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5">
+                  <rect x="3" y="3" width="18" height="18" rx="2" ry="2"/>
+                  <circle cx="8.5" cy="8.5" r="1.5"/>
+                  <polyline points="21 15 16 10 5 21"/>
+                </svg>
+                <span>คลิกเพื่อเลือกภาพ</span>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <div class="form-group">
+          <label for="systemPrompt">
+            System Prompt <span class="required">*</span>
+            <button type="button" class="help-btn" id="systemPromptHelp" title="ดูคู่มือ">?</button>
+          </label>
+          <textarea id="systemPrompt" rows="6" placeholder="คำสั่งหลักสำหรับ AI..." class="form-control"></textarea>
+        </div>
+
+        <div class="form-group">
+          <label for="userMessageTemplate">
+            User Message Template
+            <button type="button" class="help-btn" id="userMessageHelp" title="ดูคู่มือ">?</button>
+          </label>
+          <textarea id="userMessageTemplate" rows="4" placeholder="ใช้ {{productName}}, {{genderText}} ฯลฯ" class="form-control"></textarea>
+          <p class="field-hint">ตัวแปร: {{productName}}, {{personDescription}}, {{genderText}}, {{genderTextEn}}</p>
+        </div>
+      </div>
+      <div class="modal-footer">
+        <button class="btn btn-danger" id="deletePromptBtn" hidden>ลบ</button>
+        <div class="modal-footer-right">
+          <button class="btn btn-outline" id="loadDefaultBtn" title="โหลด Prompt UGC ปก">โหลด Default</button>
+          <button class="btn btn-secondary" id="cancelPromptBtn">ยกเลิก</button>
+          <button class="btn btn-primary" id="savePromptBtn">บันทึก</button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Variable Guide Modal -->
+  <div class="modal-overlay" id="guideModal" hidden style="background-color: rgba(0,0,0,0.7) !important;">
+    <div class="modal">
+      <div class="modal-header">
+        <h3>คู่มือตัวแปร</h3>
+        <button class="close-btn" id="closeGuideModal">&times;</button>
+      </div>
+      <div class="modal-body">
+        <p class="guide-intro">ใช้ตัวแปรเหล่านี้ใน User Message Template เพื่อแทนที่ข้อมูลอัตโนมัติ:</p>
+
+        <table class="guide-table">
+          <thead>
+            <tr>
+              <th>ตัวแปร</th>
+              <th>คำอธิบาย</th>
+              <th>ตัวอย่าง</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr>
+              <td><code>{{productName}}</code></td>
+              <td>ชื่อสินค้า</td>
+              <td>เซรั่มวิตามินซี</td>
+            </tr>
+            <tr>
+              <td><code>{{personDescription}}</code></td>
+              <td>คำอธิบายคนในภาพ (จาก AI)</td>
+              <td>หญิงไทยอายุ 25-30 ปี ผิวขาว</td>
+            </tr>
+            <tr>
+              <td><code>{{genderText}}</code></td>
+              <td>เพศภาษาไทย</td>
+              <td>ผู้หญิง / ผู้ชาย</td>
+            </tr>
+            <tr>
+              <td><code>{{genderTextEn}}</code></td>
+              <td>เพศภาษาอังกฤษ</td>
+              <td>Thai woman / Thai man</td>
+            </tr>
+          </tbody>
+        </table>
+
+        <div class="guide-example">
+          <h4>ตัวอย่างการใช้งาน:</h4>
+          <pre>สร้างภาพ {{genderTextEn}} กำลังถือ {{productName}}
+โดยให้แสดงความพอใจกับสินค้า
+ลักษณะคน: {{personDescription}}</pre>
+        </div>
+
+        <div class="guide-tips">
+          <h4>เคล็ดลับ:</h4>
+          <ul>
+            <li>System Prompt ควรเป็นคำสั่งหลักที่กำหนดบทบาทของ AI</li>
+            <li>User Message Template คือข้อความที่จะส่งไปพร้อมรูปภาพ</li>
+            <li>ตัวแปรจะถูกแทนที่อัตโนมัติตอน generate</li>
+          </ul>
+        </div>
+      </div>
+      <div class="modal-footer">
+        <button class="btn btn-primary" id="closeGuideBtn">เข้าใจแล้ว</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Delete Confirm Modal -->
+  <div class="modal-overlay" id="deleteModal" hidden style="background-color: rgba(0,0,0,0.7) !important;">
+    <div class="modal modal-sm">
+      <div class="modal-header">
+        <h3>ยืนยันการลบ</h3>
+        <button class="close-btn" id="closeDeleteModal">&times;</button>
+      </div>
+      <div class="modal-body">
+        <p id="deleteMessage">คุณต้องการลบ Prompt นี้หรือไม่?</p>
+      </div>
+      <div class="modal-footer">
+        <button class="btn btn-secondary" id="cancelDeleteBtn">ยกเลิก</button>
+        <button class="btn btn-danger" id="confirmDeleteBtn">ลบ</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Category Management Modal -->
+  <div class="modal-overlay" id="categoryModal" hidden style="background-color: rgba(0,0,0,0.7) !important;">
+    <div class="modal">
+      <div class="modal-header">
+        <h3>จัดการหมวดหมู่</h3>
+        <button class="close-btn" id="closeCategoryModal">&times;</button>
+      </div>
+      <div class="modal-body">
+        <div class="category-add-form">
+          <input type="text" id="newCategoryInput" placeholder="ชื่อหมวดหมู่ใหม่" class="form-control">
+          <button class="btn btn-primary" id="addCategoryBtn">เพิ่ม</button>
+        </div>
+        <div class="category-list" id="categoryList">
+          <!-- Categories will be rendered here -->
+        </div>
+      </div>
+      <div class="modal-footer">
+        <button class="btn btn-primary" id="closeCategoryDoneBtn">เสร็จสิ้น</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Toast Container -->
+  <div id="toastContainer"></div>
+
+  <!-- Scripts -->
+  <script src="../js/data/promptTemplates.js"></script>
+  <script src="../js/data/videoPromptTemplates.js"></script>
+  <script src="../js/modules/promptStorage.js"></script>
+  <script src="../js/prompt-warehouse.js"></script>
+</body>
+</html>
