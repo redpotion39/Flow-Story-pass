@@ -23,7 +23,8 @@ const PromptList = {
     this.elements = {
       list: document.getElementById('promptCopyList'),
       refreshBtn: document.getElementById('promptListRefreshBtn'),
-      clearAllBtn: document.getElementById('promptListClearAllBtn')
+      clearAllBtn: document.getElementById('promptListClearAllBtn'),
+      exportBtn: document.getElementById('promptListExportBtn')
     };
   },
 
@@ -38,6 +39,10 @@ const PromptList = {
         setTimeout(() => this.elements.refreshBtn.classList.remove('spin'), 500);
         showToast('รีเฟรชรายการแล้ว', 'success');
       });
+    }
+
+    if (this.elements.exportBtn) {
+      this.elements.exportBtn.addEventListener('click', () => this.exportToCSV());
     }
 
     if (this.elements.clearAllBtn) {
@@ -193,6 +198,43 @@ const PromptList = {
     }
     
     showToast('ล้างข้อมูลทั้งหมดแล้ว', 'success');
+  },
+
+  /**
+   * Export data to CSV (Old -> New)
+   */
+  exportToCSV() {
+    if (this.data.length === 0) {
+      showToast('ไม่มีข้อมูลที่จะส่งออก', 'error');
+      return;
+    }
+
+    const headers = ['image_prompt', 'video_prompt'];
+    const rows = this.data.map(item => [
+      `"${item.image_prompt.replace(/"/g, '""')}"`,
+      `"${item.video_prompt.replace(/"/g, '""')}"`
+    ]);
+
+    const csvContent = [
+      headers.join(','),
+      ...rows.map(row => row.join(','))
+    ].join('\n');
+
+    const blob = new Blob(['\ufeff' + csvContent], { type: 'text/csv;charset=utf-8;' });
+    const url = URL.createObjectURL(blob);
+    const link = document.createElement('a');
+    
+    const now = new Date();
+    const dateStr = `${now.getFullYear()}${String(now.getMonth()+1).padStart(2, '0')}${String(now.getDate()).padStart(2, '0')}_${String(now.getHours()).padStart(2, '0')}${String(now.getMinutes()).padStart(2, '0')}`;
+    
+    link.setAttribute('href', url);
+    link.setAttribute('download', `prompt_list_${dateStr}.csv`);
+    link.style.visibility = 'hidden';
+    document.body.appendChild(link);
+    link.click();
+    document.body.removeChild(link);
+    
+    showToast('ส่งออก CSV เรียบร้อย', 'success');
   },
 
   /**

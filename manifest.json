@@ -1,8 +1,8 @@
 {
   "manifest_version": 3,
   "name": "Flow Story",
-  "version": "2.3",
-  "version_name": "2.3",
+  "version": "2.4",
+  "version_name": "2.4",
   "description": "AI Content Generator + TikTok Uploader - All in One",
   "permissions": [
     "storage",
