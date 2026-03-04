@@ -128,15 +128,15 @@ Rules:
 1. Extract multiple scenes if present.
 2. Return ONLY a JSON array of objects.
 3. Each object MUST have ONLY two keys: "image_prompt" and "video_prompt".
-4. "image_prompt": Combine the English image description with the FULL Thai voiceover script.
+4. "image_prompt": ONLY the English image description. DO NOT include the Thai voiceover script here.
 5. "video_prompt": Combine the English video description with the FULL Thai voiceover script. 
 6. DO NOT add any extra labels, prefixes (like [Voiceover:]), or meta-text. Just append the Thai script directly after the English text.
 7. Translate any Thai descriptions (except the actual dialogue script) to English.
 
 Example output format:
 [
-  {"image_prompt": "A beautiful sunset... สวัสดีครับ...", "video_prompt": "Camera zooms... สวัสดีครับ..."},
-  {"image_prompt": "A cat playing... แมวน่ารักมาก...", "video_prompt": "Cat pouncing... แมวน่ารักมาก..."}
+  {"image_prompt": "A beautiful sunset...", "video_prompt": "Camera zooms... สวัสดีครับ..."},
+  {"image_prompt": "A cat playing...", "video_prompt": "Cat pouncing... แมวน่ารักมาก..."}
 ]`;
 
     try {
