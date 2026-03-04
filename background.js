@@ -156,25 +156,34 @@ async function updateContextMenuTitle(nextIdx = -1, total = -1) {
   let displayIdx = nextIdx;
   let displayTotal = total;
 
-  if (displayIdx === -1 || displayTotal === -1) {
-    const result = await chrome.storage.local.get(['nextPasteIndex', 'ollamaCleanedData']);
-    displayIdx = result.nextPasteIndex || 0;
-    displayTotal = (result.ollamaCleanedData || []).length;
-  }
-
-  const sceneNum = displayTotal > 0 ? (displayIdx % displayTotal) + 1 : 1;
-  const mainTitle = displayTotal > 0 ? `AI Story (Scene #${sceneNum})` : 'AI Story (No Data)';
-  
   try {
+    const result = await chrome.storage.local.get(['nextPasteIndex', 'ollamaCleanedData']);
+    if (displayIdx === -1) displayIdx = result.nextPasteIndex || 0;
+    if (displayTotal === -1) displayTotal = (result.ollamaCleanedData || []).length;
+
+    const sceneNum = displayTotal > 0 ? (displayIdx % displayTotal) + 1 : 1;
+    const mainTitle = displayTotal > 0 ? `AI Story (Scene #${sceneNum})` : 'AI Story (No Data)';
+    
     chrome.contextMenus.update('aiStoryMain', { title: mainTitle });
     
     for (let i = 1; i <= 5; i++) {
-      const absScene = displayTotal > 0 ? ((displayIdx + i - 1) % displayTotal) + 1 : i;
+      const absIdx = (displayIdx + i - 1);
+      const absScene = displayTotal > 0 ? (absIdx % displayTotal) + 1 : i;
+      const hasData = displayTotal > 0 && absIdx < displayTotal; // Optional: mark if beyond current list
+      
       const suffix = displayTotal > 0 ? ` (#${absScene})` : ' (-)';
-      chrome.contextMenus.update(`s${i}_img`, { title: `S${i}: Img${suffix}` });
-      chrome.contextMenus.update(`s${i}_vdo`, { title: `S${i}: Vdo${suffix}` });
+      chrome.contextMenus.update(`s${i}_img`, { 
+        title: `S${i}: Img${suffix}`,
+        enabled: displayTotal > 0
+      });
+      chrome.contextMenus.update(`s${i}_vdo`, { 
+        title: `S${i}: Vdo${suffix}`,
+        enabled: displayTotal > 0
+      });
     }
-  } catch (e) {}
+  } catch (e) {
+    console.error('[Background] Error updating context menu:', e);
+  }
 }
 
 /**
@@ -224,6 +233,10 @@ chrome.runtime.onMessage.addListener((message, sender, sendResponse) => {
   }
   if (message.action === 'ensureContentScript') {
     injectContentScript(message.tabId).then(res => sendResponse({ success: res }));
+    return true;
+  }
+  if (message.action === 'dataUpdated') {
+    updateContextMenuTitle();
     return true;
   }
 });

@@ -88,6 +88,9 @@ async updateConfig() {
   async saveData() {
     await chrome.storage.local.set({ ollamaCleanedData: this.data });
     this.updateCountBadge();
+    
+    // Notify other components (like Prompt List and Context Menu)
+    chrome.runtime.sendMessage({ action: 'dataUpdated' });
   },
 
   /**
