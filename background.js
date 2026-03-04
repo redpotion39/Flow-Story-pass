@@ -37,17 +37,40 @@ chrome.runtime.onInstalled.addListener(async (details) => {
 
   // Create Context Menu
   chrome.contextMenus.removeAll(() => {
+    // Parent Menu showing current scene
     chrome.contextMenus.create({
-      id: 'pasteNextImagePrompt',
-      title: 'AI Story: Paste Next Image Prompt',
+      id: 'aiStoryParent',
+      title: 'AI Story: Scene #1',
+      contexts: ['editable', 'all']
+    });
+
+    chrome.contextMenus.create({
+      id: 'pasteImagePrompt',
+      parentId: 'aiStoryParent',
+      title: 'Paste Image Prompt',
       contexts: ['editable']
     });
 
     chrome.contextMenus.create({
-      id: 'resetPasteIndex',
-      title: 'AI Story: Reset Paste Sequence',
+      id: 'pasteVideoPrompt',
+      parentId: 'aiStoryParent',
+      title: 'Paste Video Prompt',
+      contexts: ['editable']
+    });
+
+    chrome.contextMenus.create({
+      id: 'nextScene',
+      title: 'AI Story: Next Scene (+1)',
       contexts: ['all']
     });
+
+    chrome.contextMenus.create({
+      id: 'resetPasteIndex',
+      title: 'AI Story: Reset to Scene #1',
+      contexts: ['all']
+    });
+    
+    updateContextMenuTitle();
   });
 
   // Re-inject content scripts to all tabs after install/update
@@ -58,56 +81,50 @@ chrome.runtime.onInstalled.addListener(async (details) => {
 
 // Handle Context Menu Clicks
 chrome.contextMenus.onClicked.addListener(async (info, tab) => {
-  if (info.menuItemId === 'pasteNextImagePrompt') {
-    const result = await chrome.storage.local.get(['ollamaCleanedData', 'nextPasteIndex']);
-    const data = result.ollamaCleanedData || [];
-    let index = result.nextPasteIndex || 0;
+  const result = await chrome.storage.local.get(['ollamaCleanedData', 'nextPasteIndex']);
+  const data = result.ollamaCleanedData || [];
+  let index = result.nextPasteIndex || 0;
+  const chronologicalData = [...data].reverse();
 
-    // We paste in chronological order (Oldest -> Newest)
-    // ollamaCleanedData is newest first, so we reverse it for the index logic
-    const chronologicalData = [...data].reverse();
-
-    if (index >= chronologicalData.length) {
-      // Loop back or stop
-      index = 0;
-    }
-
+  if (info.menuItemId === 'pasteImagePrompt' || info.menuItemId === 'pasteVideoPrompt') {
     if (chronologicalData.length > 0) {
-      const item = chronologicalData[index];
-      const text = item.image_prompt;
-
-      // Send to content script
+      const safeIndex = index % chronologicalData.length;
+      const item = chronologicalData[safeIndex];
+      const text = info.menuItemId === 'pasteImagePrompt' ? item.image_prompt : item.video_prompt;
       chrome.tabs.sendMessage(tab.id, { action: 'insertText', text: text });
-
-      // Increment and save index
-      const nextIndex = (index + 1) % chronologicalData.length;
-      await chrome.storage.local.set({ nextPasteIndex: nextIndex });
-      
-      // Update menu title to show next
-      updateContextMenuTitle(nextIndex, chronologicalData.length);
     }
+  } else if (info.menuItemId === 'nextScene') {
+    const nextIndex = (index + 1) % (chronologicalData.length || 1);
+    await chrome.storage.local.set({ nextPasteIndex: nextIndex });
+    updateContextMenuTitle(nextIndex, chronologicalData.length);
   } else if (info.menuItemId === 'resetPasteIndex') {
     await chrome.storage.local.set({ nextPasteIndex: 0 });
-    updateContextMenuTitle(0);
-    console.log('[AI Story] Paste index reset');
+    updateContextMenuTitle(0, chronologicalData.length);
   }
 });
 
 /**
  * Update Context Menu title to show progress
  */
-async function updateContextMenuTitle(nextIdx, total = -1) {
+async function updateContextMenuTitle(nextIdx = -1, total = -1) {
+  let displayIdx = nextIdx;
   let displayTotal = total;
-  if (total === -1) {
-    const result = await chrome.storage.local.get('ollamaCleanedData');
+
+  if (displayIdx === -1 || displayTotal === -1) {
+    const result = await chrome.storage.local.get(['nextPasteIndex', 'ollamaCleanedData']);
+    displayIdx = result.nextPasteIndex || 0;
     displayTotal = (result.ollamaCleanedData || []).length;
   }
 
-  const title = displayTotal > 0 
-    ? `AI Story: Paste Image Prompt #${nextIdx + 1} / ${displayTotal}`
-    : 'AI Story: Paste Next Image Prompt';
+  const sceneTitle = displayTotal > 0 
+    ? `AI Story: Scene #${(displayIdx % displayTotal) + 1} / ${displayTotal}`
+    : 'AI Story: No Prompts';
 
-  chrome.contextMenus.update('pasteNextImagePrompt', { title: title });
+  try {
+    chrome.contextMenus.update('aiStoryParent', { title: sceneTitle });
+  } catch (e) {
+    // Menu might not exist yet
+  }
 }
 
 /**

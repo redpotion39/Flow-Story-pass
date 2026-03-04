@@ -194,17 +194,31 @@ const PromptList = {
    * Delete item from storage
    */
   async deleteItem(originalIndex) {
-    const result = await chrome.storage.local.get('ollamaCleanedData');
+    const result = await chrome.storage.local.get(['ollamaCleanedData', 'nextPasteIndex']);
     let rawData = result.ollamaCleanedData || [];
+    let nextIndex = result.nextPasteIndex || 0;
     
     // Remove item at original index
     rawData.splice(originalIndex, 1);
     
+    // Adjust nextPasteIndex if needed (since list is now shorter)
+    if (nextIndex >= rawData.length && rawData.length > 0) {
+      nextIndex = 0;
+    } else if (rawData.length === 0) {
+      nextIndex = 0;
+    }
+    
     // Save back to storage
-    await chrome.storage.local.set({ ollamaCleanedData: rawData });
+    await chrome.storage.local.set({ 
+      ollamaCleanedData: rawData,
+      nextPasteIndex: nextIndex
+    });
     
     // Refresh display
     await this.loadAndRender();
+    
+    // Update background menu title
+    if (chrome.runtime.lastError) console.warn('Error updating index');
     
     // Also update CleanData count if visible
     if (typeof OllamaCleaner !== 'undefined') {
