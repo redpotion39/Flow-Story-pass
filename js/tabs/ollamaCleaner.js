@@ -40,6 +40,13 @@ STRICT RULES & CONSTRAINTS:
     await this.updateConfig();
     await this.loadData();
     this.renderData();
+
+    // Listen for updates from other components
+    chrome.runtime.onMessage.addListener((message) => {
+      if (message.action === 'dataUpdated') {
+        this.loadData().then(() => this.renderData());
+      }
+    });
   },
 
   /**
@@ -138,7 +145,11 @@ STRICT RULES & CONSTRAINTS:
     this.updateCountBadge();
     
     // Notify other components (like Prompt List and Context Menu)
-    chrome.runtime.sendMessage({ action: 'dataUpdated' });
+    try {
+      chrome.runtime.sendMessage({ action: 'dataUpdated' });
+    } catch (e) {
+      // Ignore errors if nobody is listening
+    }
   },
 
   /**
@@ -180,12 +191,19 @@ STRICT RULES & CONSTRAINTS:
       const cleanedItems = await this.processWithAI(rawText);
       
       if (cleanedItems && cleanedItems.length > 0) {
-        this.data = [...cleanedItems, ...this.data];
-        await this.saveData();
-        this.renderData();
-        this.elements.rawInput.value = '';
-        showToast(`ทำความสะอาดข้อมูลเรียบร้อย ${cleanedItems.length} รายการ`, 'success');
-        this.setStatus('', '');
+        // Filter out empty results if any
+        const validItems = cleanedItems.filter(item => item.image_prompt || item.video_prompt);
+        
+        if (validItems.length > 0) {
+          this.data = [...validItems, ...this.data];
+          await this.saveData();
+          this.renderData();
+          this.elements.rawInput.value = '';
+          showToast(`ทำความสะอาดข้อมูลเรียบร้อย ${validItems.length} รายการ`, 'success');
+          this.setStatus('', '');
+        } else {
+          throw new Error('AI ส่งข้อมูลกลับมาแต่ไม่มีเนื้อหา Prompt');
+        }
       } else {
         throw new Error('ไม่พบข้อมูลที่ต้องการในข้อความที่ส่งมา');
       }
@@ -209,8 +227,12 @@ STRICT RULES & CONSTRAINTS:
       return this.parseAIResponse(response);
     } catch (error) {
       console.warn('Primary model failed, trying backup...', error);
-      const backupResponse = await this.callOllama(this.config.backupModel, systemPrompt, text);
-      return this.parseAIResponse(backupResponse);
+      try {
+        const backupResponse = await this.callOllama(this.config.backupModel, systemPrompt, text);
+        return this.parseAIResponse(backupResponse);
+      } catch (backupError) {
+        throw error; // Throw original error if backup also fails
+      }
     }
   },
 
@@ -249,18 +271,33 @@ STRICT RULES & CONSTRAINTS:
   parseAIResponse(text) {
     try {
       // Find JSON block if AI added extra text
-      const jsonMatch = text.match(/\[[\s\S]*\]/);
-      const jsonStr = jsonMatch ? jsonMatch[0] : text;
-      const parsed = JSON.parse(jsonStr);
+      // Support both array [ ] and object { }
+      const arrayMatch = text.match(/\[[\s\S]*\]/);
+      const objectMatch = text.match(/\{[\s\S]*\}/);
       
-      if (Array.isArray(parsed)) {
-        return parsed.map(item => ({
-          image_prompt: item.image_prompt || '',
-          video_prompt: item.video_prompt || '',
-          timestamp: Date.now()
-        }));
+      let jsonStr = '';
+      if (arrayMatch) {
+        jsonStr = arrayMatch[0];
+      } else if (objectMatch) {
+        jsonStr = objectMatch[0];
+      } else {
+        jsonStr = text;
       }
-      return [];
+
+      const parsed = JSON.parse(jsonStr);
+      const items = Array.isArray(parsed) ? parsed : [parsed];
+      
+      return items.map(item => {
+        // Flexible key matching (support both camelCase and snake_case)
+        const image_prompt = item.image_prompt || item.imagePrompt || item.image || '';
+        const video_prompt = item.video_prompt || item.videoPrompt || item.video || '';
+        
+        return {
+          image_prompt: typeof image_prompt === 'string' ? image_prompt : JSON.stringify(image_prompt),
+          video_prompt: typeof video_prompt === 'string' ? video_prompt : JSON.stringify(video_prompt),
+          timestamp: Date.now()
+        };
+      });
     } catch (e) {
       console.error('Failed to parse AI response:', text);
       throw new Error('AI ส่งข้อมูลกลับมาในรูปแบบที่ไม่ถูกต้อง (กรุณาลองปรับ System Prompt)');
@@ -278,50 +315,55 @@ STRICT RULES & CONSTRAINTS:
       return;
     }
 
-    this.elements.resultsList.innerHTML = this.data.map((item, index) => `
-      <div class="result-item">
-        <div class="result-header">
-          <span>รายการที่ ${this.data.length - index}</span>
-          <button class="delete-item-btn" data-index="${index}" title="ลบรายการนี้">
-            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-              <polyline points="3 6 5 6 21 6"></polyline>
-              <path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"></path>
-              <line x1="10" y1="11" x2="10" y2="17"></line>
-              <line x1="14" y1="11" x2="14" y2="17"></line>
-            </svg>
-          </button>
-        </div>
-        <div class="result-content">
-          <div class="result-field">
-            <div style="display: flex; justify-content: space-between; align-items: center;">
-              <strong>Image Prompt:</strong>
-              <button class="btn-copy-small" data-text="${this.escapeHtml(item.image_prompt)}" title="Copy Image Prompt">
-                <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                  <rect x="9" y="9" width="13" height="13" rx="2" ry="2"></rect>
-                  <path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"></path>
-                </svg>
-              </button>
-            </div>
-            <p>${item.image_prompt}</p>
+    this.elements.resultsList.innerHTML = this.data.map((item, index) => {
+      const escapedImage = this.escapeHtml(item.image_prompt);
+      const escapedVideo = this.escapeHtml(item.video_prompt);
+      
+      return `
+        <div class="prompt-card">
+          <div class="prompt-card-header" style="display: flex; justify-content: space-between; align-items: center;">
+            <span class="prompt-card-index">รายการที่ ${this.data.length - index}</span>
+            <button class="delete-prompt-btn" data-index="${index}" title="ลบรายการนี้">
+              <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                <polyline points="3 6 5 6 21 6"></polyline>
+                <path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"></path>
+                <line x1="10" y1="11" x2="10" y2="17"></line>
+                <line x1="14" y1="11" x2="14" y2="17"></line>
+              </svg>
+            </button>
           </div>
-          <div class="result-field">
-            <div style="display: flex; justify-content: space-between; align-items: center;">
-              <strong>Video Prompt:</strong>
-              <button class="btn-copy-small" data-text="${this.escapeHtml(item.video_prompt)}" title="Copy Video Prompt">
-                <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                  <rect x="9" y="9" width="13" height="13" rx="2" ry="2"></rect>
-                  <path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"></path>
-                </svg>
-              </button>
+          <div class="prompt-card-body">
+            <div class="copy-group">
+              <label>Image Prompt</label>
+              <div class="copy-input-wrapper">
+                <textarea readonly placeholder="- ไม่มีข้อมูล -">${item.image_prompt || ''}</textarea>
+                <button class="btn-copy-icon" data-text="${escapedImage}" title="คัดลอก Image Prompt">
+                  <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                    <rect x="9" y="9" width="13" height="13" rx="2" ry="2"></rect>
+                    <path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"></path>
+                  </svg>
+                </button>
+              </div>
             </div>
-            <p>${item.video_prompt}</p>
+            <div class="copy-group">
+              <label>Video Prompt</label>
+              <div class="copy-input-wrapper">
+                <textarea readonly placeholder="- ไม่มีข้อมูล -">${item.video_prompt || ''}</textarea>
+                <button class="btn-copy-icon" data-text="${escapedVideo}" title="คัดลอก Video Prompt">
+                  <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                    <rect x="9" y="9" width="13" height="13" rx="2" ry="2"></rect>
+                    <path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"></path>
+                  </svg>
+                </button>
+              </div>
+            </div>
           </div>
         </div>
-      </div>
-    `).join('');
+      `;
+    }).join('');
 
     // Add delete listeners
-    this.elements.resultsList.querySelectorAll('.delete-item-btn').forEach(btn => {
+    this.elements.resultsList.querySelectorAll('.delete-prompt-btn').forEach(btn => {
       btn.addEventListener('click', (e) => {
         const index = parseInt(e.currentTarget.dataset.index);
         this.deleteItem(index);
@@ -329,7 +371,7 @@ STRICT RULES & CONSTRAINTS:
     });
 
     // Add copy listeners
-    this.elements.resultsList.querySelectorAll('.btn-copy-small').forEach(btn => {
+    this.elements.resultsList.querySelectorAll('.btn-copy-icon').forEach(btn => {
       btn.addEventListener('click', (e) => {
         const text = e.currentTarget.dataset.text;
         this.handleCopy(text, e.currentTarget);
@@ -341,13 +383,14 @@ STRICT RULES & CONSTRAINTS:
    * Handle copying to clipboard
    */
   async handleCopy(text, btn) {
+    if (!text) return;
     try {
       await navigator.clipboard.writeText(text);
       showToast('คัดลอกแล้ว', 'success');
       
       const originalSvg = btn.innerHTML;
       btn.innerHTML = `
-        <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="#2ecc71" stroke-width="2">
+        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#2ecc71" stroke-width="2">
           <polyline points="20 6 9 17 4 12"></polyline>
         </svg>
       `;
