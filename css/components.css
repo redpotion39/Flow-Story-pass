@@ -1921,3 +1921,39 @@
   color: var(--color-text-secondary);
   margin: 0;
 }
+
+/* Additional Utility Buttons */
+.btn-text-only {
+  background: none;
+  border: none;
+  padding: 0;
+  cursor: pointer;
+  text-decoration: underline;
+  font-family: inherit;
+  transition: opacity 0.2s;
+}
+
+.btn-text-only:hover {
+  opacity: 0.8;
+}
+
+.btn-copy-small {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 24px;
+  height: 24px;
+  background: var(--color-surface);
+  border: 1px solid var(--color-border);
+  border-radius: 4px;
+  color: var(--color-text-secondary);
+  cursor: pointer;
+  transition: all 0.2s ease;
+  padding: 0;
+}
+
+.btn-copy-small:hover {
+  border-color: var(--color-primary);
+  color: var(--color-primary);
+  background: var(--color-bg-inset);
+}

@@ -12,42 +12,66 @@ const OllamaCleaner = {
     host: 'https://ollama.com'
   },
 
+  // Default System Prompt
+  defaultSystemPrompt: `You are a data extraction assistant. Your task is to extract "Image Prompts" and "Video Prompts" from the user's text based on specific keywords.
+
+STRICT RULES & CONSTRAINTS:
+1. Keyword Filtering (VEO): If the text contains the keywords "veo3" or "veo", you must use the video/camera/script descriptions associated ONLY with those terms. All other video descriptions that do not have these keywords must be DELETED and ignored.
+2. Original Fidelity ONLY: Extract ONLY what is explicitly provided. DO NOT add, embellish, or invent any visual, camera, or narrative details.
+3. Handling Missing Data: 
+   * If a scene lacks an image description, "image_prompt" must be "".
+   * If a scene lacks "veo3"/"veo" video info, "video_prompt" must be "".
+4. Output Format: Return ONLY a JSON array of objects. No preamble or explanation.
+5. Schema: Each object MUST have ONLY two keys: "image_prompt" and "video_prompt".
+6. Translation & Structure: 
+   * image_prompt: Translate visual descriptions to English. No Thai script.
+   * video_prompt: Combine [Video Content] [Camera Movement] [Full Thai Script Block including tone header].
+   Keep the Thai dialogue and tone header exactly as written.`,
+
   // State
   data: [],
-/**
- * Initialize the module
- */
-async init() {
-  this.cacheElements();
-  this.setupEventListeners();
-  await this.updateConfig();
-  await this.loadData();
-  this.renderData();
-},
 
-/**
- * Update configuration from storage
- */
-async updateConfig() {
-  const result = await chrome.storage.local.get(['ollamaApiKey', 'ollamaModel']);
+  /**
+   * Initialize the module
+   */
+  async init() {
+    this.cacheElements();
+    this.setupEventListeners();
+    await this.updateConfig();
+    await this.loadData();
+    this.renderData();
+  },
 
-  // Update active config
-  this.config.apiKey = result.ollamaApiKey || '';
-  this.config.model = result.ollamaModel || 'qwen3-coder-next:cloud';
+  /**
+   * Update configuration from storage
+   */
+  async updateConfig() {
+    const result = await chrome.storage.local.get(['ollamaApiKey', 'ollamaModel', 'ollamaSystemPrompt']);
 
-  // Update UI display
-  const modelDisplay = document.getElementById('ollamaCurrentModelDisplay');
-  if (modelDisplay) {
-    modelDisplay.textContent = `Model: ${this.config.model}`;
-  }
-},
+    // Update active config
+    this.config.apiKey = result.ollamaApiKey || '';
+    this.config.model = result.ollamaModel || 'qwen3-coder-next:cloud';
 
-/**
- * Cache DOM elements
-...
+    // Update UI display
+    const modelDisplay = document.getElementById('ollamaCurrentModelDisplay');
+    if (modelDisplay) {
+      modelDisplay.textContent = `Model: ${this.config.model}`;
+    }
+
+    // Set system prompt in textarea if it exists
+    if (this.elements.systemPromptInput) {
+      this.elements.systemPromptInput.value = result.ollamaSystemPrompt || this.defaultSystemPrompt;
+    }
+  },
+
+  /**
+   * Cache DOM elements
    */
   cacheElements() {
     this.elements = {
+      systemPromptInput: document.getElementById('ollamaSystemPrompt'),
+      resetPromptBtn: document.getElementById('ollamaResetPromptBtn'),
+      savePromptBtn: document.getElementById('ollamaSavePromptBtn'),
       rawInput: document.getElementById('ollamaRawInput'),
       cleanBtn: document.getElementById('ollamaCleanBtn'),
       exportBtn: document.getElementById('ollamaExportBtn'),
@@ -70,6 +94,30 @@ async updateConfig() {
     }
     if (this.elements.clearBtn) {
       this.elements.clearBtn.addEventListener('click', () => this.clearAllData());
+    }
+    if (this.elements.resetPromptBtn) {
+      this.elements.resetPromptBtn.addEventListener('click', () => {
+        if (confirm('ต้องการคืนค่าเริ่มต้นสำหรับคำสั่งคลีนข้อมูลหรือไม่?')) {
+          this.elements.systemPromptInput.value = this.defaultSystemPrompt;
+          this.saveSystemPrompt();
+        }
+      });
+    }
+    if (this.elements.savePromptBtn) {
+      this.elements.savePromptBtn.addEventListener('click', () => this.saveSystemPrompt());
+    }
+    if (this.elements.systemPromptInput) {
+      this.elements.systemPromptInput.addEventListener('change', () => this.saveSystemPrompt());
+    }
+  },
+
+  /**
+   * Save system prompt to storage
+   */
+  async saveSystemPrompt() {
+    if (this.elements.systemPromptInput) {
+      await chrome.storage.local.set({ ollamaSystemPrompt: this.elements.systemPromptInput.value });
+      showToast('บันทึกคำสั่งคลีนข้อมูลแล้ว', 'success');
     }
   },
 
@@ -122,6 +170,9 @@ async updateConfig() {
       return;
     }
 
+    // Save custom prompt if changed
+    await this.saveSystemPrompt();
+
     this.setLoading(true);
     this.setStatus('กำลังประมวลผลด้วย Ollama...', 'info');
 
@@ -151,23 +202,7 @@ async updateConfig() {
    * Process raw text using Ollama API
    */
   async processWithAI(text) {
-    const systemPrompt = `You are a data extraction assistant. 
-Your task is to extract "Image Prompts" and "Video Prompts" from the user's text.
-
-Rules:
-1. Extract multiple scenes if present.
-2. Return ONLY a JSON array of objects.
-3. Each object MUST have ONLY two keys: "image_prompt" and "video_prompt".
-4. "image_prompt": ONLY the English image description. DO NOT include the Thai script here.
-5. "video_prompt": Combine the English video description with the FULL Thai script block (including its header like "สคริปต์เสียงพูด ภาษาไทย ดุดัน"). 
-6. This Thai header is important as it describes the character's tone.
-7. Translate any Thai visual descriptions to English, but keep the dialogue and its tone header in Thai.
-
-Example output format:
-[
-  {"image_prompt": "A beautiful sunset...", "video_prompt": "Camera zooms... สคริปต์เสียงพูด ภาษาไทย อ่อนโยน: สวัสดีครับ..."},
-  {"image_prompt": "A cat playing...", "video_prompt": "Cat pouncing... สคริปต์เสียงพูด ภาษาไทย สนุกสนาน: แมวน่ารักมาก..."}
-]`;
+    const systemPrompt = this.elements.systemPromptInput ? this.elements.systemPromptInput.value : this.defaultSystemPrompt;
 
     try {
       const response = await this.callOllama(this.config.model, systemPrompt, text);
@@ -228,7 +263,7 @@ Example output format:
       return [];
     } catch (e) {
       console.error('Failed to parse AI response:', text);
-      throw new Error('AI ส่งข้อมูลกลับมาในรูปแบบที่ไม่ถูกต้อง');
+      throw new Error('AI ส่งข้อมูลกลับมาในรูปแบบที่ไม่ถูกต้อง (กรุณาลองปรับ System Prompt)');
     }
   },
 
@@ -258,11 +293,27 @@ Example output format:
         </div>
         <div class="result-content">
           <div class="result-field">
-            <strong>Image:</strong>
+            <div style="display: flex; justify-content: space-between; align-items: center;">
+              <strong>Image Prompt:</strong>
+              <button class="btn-copy-small" data-text="${this.escapeHtml(item.image_prompt)}" title="Copy Image Prompt">
+                <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                  <rect x="9" y="9" width="13" height="13" rx="2" ry="2"></rect>
+                  <path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"></path>
+                </svg>
+              </button>
+            </div>
             <p>${item.image_prompt}</p>
           </div>
           <div class="result-field">
-            <strong>Video:</strong>
+            <div style="display: flex; justify-content: space-between; align-items: center;">
+              <strong>Video Prompt:</strong>
+              <button class="btn-copy-small" data-text="${this.escapeHtml(item.video_prompt)}" title="Copy Video Prompt">
+                <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                  <rect x="9" y="9" width="13" height="13" rx="2" ry="2"></rect>
+                  <path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"></path>
+                </svg>
+              </button>
+            </div>
             <p>${item.video_prompt}</p>
           </div>
         </div>
@@ -272,10 +323,49 @@ Example output format:
     // Add delete listeners
     this.elements.resultsList.querySelectorAll('.delete-item-btn').forEach(btn => {
       btn.addEventListener('click', (e) => {
-        const index = parseInt(e.target.dataset.index);
+        const index = parseInt(e.currentTarget.dataset.index);
         this.deleteItem(index);
       });
     });
+
+    // Add copy listeners
+    this.elements.resultsList.querySelectorAll('.btn-copy-small').forEach(btn => {
+      btn.addEventListener('click', (e) => {
+        const text = e.currentTarget.dataset.text;
+        this.handleCopy(text, e.currentTarget);
+      });
+    });
+  },
+
+  /**
+   * Handle copying to clipboard
+   */
+  async handleCopy(text, btn) {
+    try {
+      await navigator.clipboard.writeText(text);
+      showToast('คัดลอกแล้ว', 'success');
+      
+      const originalSvg = btn.innerHTML;
+      btn.innerHTML = `
+        <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="#2ecc71" stroke-width="2">
+          <polyline points="20 6 9 17 4 12"></polyline>
+        </svg>
+      `;
+      setTimeout(() => btn.innerHTML = originalSvg, 2000);
+    } catch (err) {
+      console.error('Failed to copy:', err);
+      showToast('ไม่สามารถคัดลอกได้', 'error');
+    }
+  },
+
+  /**
+   * Simple HTML escape
+   */
+  escapeHtml(text) {
+    if (!text) return '';
+    const div = document.createElement('div');
+    div.textContent = text;
+    return div.innerHTML.replace(/"/g, '&quot;');
   },
 
   /**
@@ -293,9 +383,16 @@ Example output format:
    * Clear all data
    */
   async clearAllData() {
-    if (this.data.length === 0) return;
+    if (this.data.length === 0) {
+      // If data is empty but there's raw input, just clear raw input
+      if (this.elements.rawInput.value) {
+        this.elements.rawInput.value = '';
+        return;
+      }
+      return;
+    }
     
-    if (confirm('ต้องการล้างข้อมูลทั้งหมดหรือไม่?')) {
+    if (confirm('ต้องการล้างข้อมูลที่ประมวลผลแล้วทั้งหมดหรือไม่?')) {
       this.data = [];
       await this.saveData();
       this.renderData();

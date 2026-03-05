@@ -643,10 +643,23 @@
             <h2 class="section-title">Ollama Prompt Cleaner</h2>
             <div id="ollamaCurrentModelDisplay" class="text-sm" style="color: var(--color-primary); font-weight: 500;">Model: qwen3-coder-next:cloud</div>
           </div>
+          
+          <div class="form-group">
+            <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 4px;">
+              <label for="ollamaSystemPrompt" style="margin-bottom: 0;">คำสั่งในการคลีนข้อมูล (System Prompt)</label>
+              <div style="display: flex; gap: 8px;">
+                <button class="btn-text-only" id="ollamaResetPromptBtn" style="font-size: 11px; color: var(--color-text-hint);">คืนค่าเริ่มต้น</button>
+                <button class="btn-text-only" id="ollamaSavePromptBtn" style="font-size: 11px; color: var(--color-primary); font-weight: 600;">💾 บันทึกคำสั่ง</button>
+              </div>
+            </div>
+            <textarea id="ollamaSystemPrompt" class="form-control" rows="6" placeholder="กำหนดคำสั่งให้ AI ในการสกัดข้อมูล..."></textarea>
+          </div>
+
           <div class="form-group">
             <label for="ollamaRawInput">วางข้อมูลจาก Gemini</label>
             <textarea id="ollamaRawInput" class="form-control" rows="8" placeholder="วาง Prompt ที่คัดลอกมาจาก Gemini ที่นี่..."></textarea>
           </div>
+          
           <div class="button-row">
             <button class="btn btn-primary" id="ollamaCleanBtn" style="flex: 2;">
               <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
@@ -654,7 +667,7 @@
               </svg>
               ทำความสะอาดข้อมูล
             </button>
-            <button class="btn btn-outline" id="ollamaClearBtn">ล้าง</button>
+            <button class="btn btn-outline" id="ollamaClearBtn">ล้างหน้าจอ</button>
           </div>
           <div id="ollamaStatus" class="status-msg" hidden></div>
         </section>
